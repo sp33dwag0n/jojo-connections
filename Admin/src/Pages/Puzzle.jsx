@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -6,6 +6,10 @@ function Puzzle() {
   const navigate = useNavigate();
   const [puzzle, setPuzzle] = useState([]);
 
+  useEffect(() => {
+    console.log(puzzle);
+  }, [puzzle]) 
+  
   const generatePuzzle = async () => {
     const response = await fetch(`http://localhost:5050/catagory/puzzle`);
     if (!response.ok) {
@@ -14,8 +18,7 @@ function Puzzle() {
       return;
     }
     const generatedPuzzle = await response.json();
-    setPuzzle(generatedPuzzle);
-    console.log(puzzle);
+    setPuzzle(generatedPuzzle); 
   }
   
   return (
@@ -25,7 +28,7 @@ function Puzzle() {
         <button className="btn" onClick={() => navigate("/admin")}>Admin</button>
       </div>
       <div>
-        <button className="btn" onClick={() => generatePuzzle}>Make Puzzle</button>
+        <button className="btn" onClick={() => generatePuzzle()}>Make Puzzle</button>
       </div>
     </div>
   )
