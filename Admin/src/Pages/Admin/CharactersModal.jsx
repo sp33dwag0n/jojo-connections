@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import '../Styles/modal.css';
 
 function CharactersModal({ open, onClose, selectedCharacters, changeCharacters }) {
 

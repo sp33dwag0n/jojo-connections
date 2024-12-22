@@ -1,11 +1,15 @@
 import { BrowserRouter, Route, Routes} from "react-router-dom";
-import Home from './Pages/AdminHome.jsx';
-import CharacterList from './Pages/CharacterList.jsx';
-import AddCharacter from './Pages/AddCharacter.jsx';
-import CatagoryList from './Pages/CatagoryList.jsx';
-import AddCatagory from './Pages/AddCatagory.jsx';
-import AdminHome from "./Pages/AdminHome.jsx";
-import Puzzle from "./Pages/Puzzle.jsx";
+import CharacterList from './Pages/Admin/CharacterList.jsx';
+import AddCharacter from './Pages/Admin/AddCharacter.jsx';
+import CatagoryList from './Pages/Admin/CatagoryList.jsx';
+import AddCatagory from './Pages/Admin/AddCatagory.jsx';
+import AdminHome from "./Pages/Admin/AdminHome.jsx";
+import Puzzle from "./Pages/Main/Puzzle.jsx";
+import './Styles/modal.css';
+import './Styles/home.css';
+import './Styles/list.css';
+
+
 
 function App() {
 
