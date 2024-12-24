@@ -1,10 +1,10 @@
 import React from 'react'
 
-function ConnectionButton({ name, catagory }) {
+function ConnectionButton({ name, category }) {
   return (
     <div className='connectionBtn'>
       <p>{name}</p>
-      <p>{catagory}</p>
+      <p>{category}</p>
     </div>
   )
 }

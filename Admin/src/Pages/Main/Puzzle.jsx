@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ConnectionButton from './ConnectionButton';
 
 
 function Puzzle() {
   const navigate = useNavigate();
-  const [puzzle, setPuzzle] = useState(null);
+  const puzzle = useRef(null);
+  const [puzzleObjects, setPuzzleObjects] = useState(null);
   
   const generatePuzzle = async () => {
     const response = await fetch(`http://localhost:5050/catagory/puzzle`);
@@ -15,7 +16,26 @@ function Puzzle() {
       return;
     }
     const generatedPuzzle = await response.json();
-    setPuzzle(generatedPuzzle); 
+    console.log(generatedPuzzle);
+    puzzle.current = generatedPuzzle;
+
+    const categories = ['easy', 'medium', 'hard', 'extreme'];
+    const puzzleObjectsArray = [];
+    for (let category of categories) {
+      const categoryName = generatedPuzzle[category];
+      const characters = generatedPuzzle[`${category}Characters`];
+
+      for (let character of characters) {
+        puzzleObjectsArray.push({
+          id: character._id,
+          name: character.name,
+          category: categoryName
+        })
+      }
+    }
+
+    setPuzzleObjects(puzzleObjectsArray);
+
   }
   
   return (
@@ -27,15 +47,14 @@ function Puzzle() {
       <div>
         <button className="btn" onClick={() => generatePuzzle()}>Make Puzzle</button>
       </div>
-      {puzzle && (
-        <div>
-          <p>{puzzle.easy}: {puzzle.easyCharacters[0].name} {puzzle.easyCharacters[1].name} {puzzle.easyCharacters[2].name} {puzzle.easyCharacters[3].name} </p>
-          <p>{puzzle.medium}: {puzzle.mediumCharacters[0].name} {puzzle.mediumCharacters[1].name} {puzzle.mediumCharacters[2].name} {puzzle.mediumCharacters[3].name} </p>
-          <p>{puzzle.hard}: {puzzle.hardCharacters[0].name} {puzzle.hardCharacters[1].name} {puzzle.hardCharacters[2].name} {puzzle.hardCharacters[3].name} </p>
-          <p>{puzzle.extreme}: {puzzle.extremeCharacters[0].name} {puzzle.extremeCharacters[1].name} {puzzle.extremeCharacters[2].name} {puzzle.extremeCharacters[3].name} </p>
-        </div>
+      {puzzleObjects && (
+        puzzleObjects.map((character) => {
+          return (
+            <ConnectionButton key={character.id} name={character.name} category={character.category} />
+          )
+        })
       )}
-      <ConnectionButton name="name" catagory="catagory" />
+      
     </div>
   )
 }
