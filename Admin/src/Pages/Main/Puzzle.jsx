@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ConnectionButton from './ConnectionButton';
 
 
 function Puzzle() {
@@ -34,7 +35,7 @@ function Puzzle() {
           <p>{puzzle.extreme}: {puzzle.extremeCharacters[0].name} {puzzle.extremeCharacters[1].name} {puzzle.extremeCharacters[2].name} {puzzle.extremeCharacters[3].name} </p>
         </div>
       )}
-      
+      <ConnectionButton name="name" catagory="catagory" />
     </div>
   )
 }
