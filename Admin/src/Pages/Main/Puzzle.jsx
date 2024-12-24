@@ -5,8 +5,8 @@ import ConnectionButton from './ConnectionButton';
 
 function Puzzle() {
   const navigate = useNavigate();
-  const puzzle = useRef(null);
-  const [puzzleObjects, setPuzzleObjects] = useState(null);
+  const puzzleInfo = useRef(null);
+  const [characters, setCharacters] = useState(null);
   
   const generatePuzzle = async () => {
     const response = await fetch(`http://localhost:5050/catagory/puzzle`);
@@ -17,7 +17,7 @@ function Puzzle() {
     }
     const generatedPuzzle = await response.json();
     console.log(generatedPuzzle);
-    puzzle.current = generatedPuzzle;
+    puzzleInfo.current = generatedPuzzle;
 
     const categories = ['easy', 'medium', 'hard', 'extreme'];
     const puzzleObjectsArray = [];
@@ -34,7 +34,7 @@ function Puzzle() {
       }
     }
 
-    setPuzzleObjects(puzzleObjectsArray);
+    setCharacters(puzzleObjectsArray);
 
   }
   
@@ -47,8 +47,8 @@ function Puzzle() {
       <div>
         <button className="btn" onClick={() => generatePuzzle()}>Make Puzzle</button>
       </div>
-      {puzzleObjects && (
-        puzzleObjects.map((character) => {
+      {characters && (
+        characters.map((character) => {
           return (
             <ConnectionButton key={character.id} name={character.name} category={character.category} />
           )
