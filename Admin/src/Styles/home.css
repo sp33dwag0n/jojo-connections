@@ -2,6 +2,13 @@
     transform: translate(0, 50%);
 }
 
+.btn-container {
+    display: flex;
+    justify-content: space-evenly;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
 .btn {
     width: 200px;
     height: 200px;
@@ -30,11 +37,18 @@
     justify-content: center;
 }
 
+.connectionBtn-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 equal-width columns */
+    gap: 20px; /* space between buttons in the grid */
+    justify-items: center; /* centers the buttons within their grid cells */
+    margin-top: 20px; /* Add space between grid and other elements */
+}
+
 .connectionBtn {
     border: 1px solid black;
     height: 100px;
     width: 100px;
-    margin: 20px;
     align-items: center;
     justify-items: center;
 }

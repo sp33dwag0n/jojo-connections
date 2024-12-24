@@ -40,20 +40,20 @@ function Puzzle() {
   
   return (
     <div>
-      <div>Puzzle</div>
-      <div>
+      <div className='btn-container'>
         <button className="btn" onClick={() => navigate("/admin")}>Admin</button>
-      </div>
-      <div>
         <button className="btn" onClick={() => generatePuzzle()}>Make Puzzle</button>
       </div>
-      {characters && (
-        characters.map((character) => {
-          return (
-            <ConnectionButton key={character.id} name={character.name} category={character.category} />
-          )
-        })
-      )}
+      <div className='connectionBtn-container'>
+        {characters && (
+          characters.map((character) => {
+            return (
+              <ConnectionButton key={character.id} name={character.name} category={character.category} />
+            )
+          })
+        )}
+      </div>
+      
       
     </div>
   )
