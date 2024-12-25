@@ -36,37 +36,3 @@
     display: flex;
     justify-content: center;
 }
-
-.connectionBtn-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 equal-width columns */
-    gap: 20px; /* space between buttons in the grid */
-    justify-items: center; /* centers the buttons within their grid cells */
-    margin-top: 20px; /* Add space between grid and other elements */
-}
-
-.connectionBtn {
-    border: 1px solid black;
-    width: 350px;
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-items: center;
-    word-wrap: break-word;
-    text-align: center;
-}
-
-.connectionBtn-pressed {
-    background-color: #bababa;
-}
-
-.connectionBtn-unpressed {
-    background-color: white;
-}
-
-.connectionBtn p {
-    margin: 0;
-    padding: 0;
-    line-height: 1.2;
-}

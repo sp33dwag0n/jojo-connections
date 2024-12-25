@@ -8,6 +8,7 @@ import Puzzle from "./Pages/Main/Puzzle.jsx";
 import './Styles/modal.css';
 import './Styles/home.css';
 import './Styles/list.css';
+import './Styles/connections.css';
 
 
 
