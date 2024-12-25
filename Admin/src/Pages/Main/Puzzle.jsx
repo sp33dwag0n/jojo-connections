@@ -7,6 +7,7 @@ function Puzzle() {
   const navigate = useNavigate();
   const puzzleInfo = useRef(null);
   const [characters, setCharacters] = useState(null);
+  const [pressedIds, setPressedIds] = useState(new Set());
   
   const generatePuzzle = async () => {
     const response = await fetch(`http://localhost:5050/catagory/puzzle`);
@@ -45,13 +46,17 @@ function Puzzle() {
         <button className="btn" onClick={() => generatePuzzle()}>Make Puzzle</button>
       </div>
       <div className='connectionBtn-container'>
-        {characters && (
-          characters.map((character) => {
-            return (
-              <ConnectionButton key={character.id} name={character.name} category={character.category} />
-            )
-          })
-        )}
+        {characters && characters.map((character) => {
+          let isPressed = pressedIds.has(character.id);
+          return (
+            <ConnectionButton 
+              key={character.id} 
+              name={character.name} 
+              category={character.category} 
+              isPressed={isPressed}
+            />
+          )
+        })}
       </div>
       
       

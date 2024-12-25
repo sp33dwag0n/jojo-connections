@@ -47,8 +47,19 @@
 
 .connectionBtn {
     border: 1px solid black;
-    height: 100px;
-    width: 100px;
+    width: 350px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-items: center;
+    word-wrap: break-word;
+    text-align: center;
+}
+
+/* temp ptag css */
+.connectionBtn p {
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
 }
