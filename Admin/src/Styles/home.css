@@ -45,7 +45,7 @@
     margin-top: 20px; /* Add space between grid and other elements */
 }
 
-.connectionBtn-pressed {
+.connectionBtn {
     border: 1px solid black;
     width: 350px;
     padding: 30px;
@@ -55,28 +55,17 @@
     justify-items: center;
     word-wrap: break-word;
     text-align: center;
+}
+
+.connectionBtn-pressed {
     background-color: #bababa;
 }
 
 .connectionBtn-unpressed {
-    border: 1px solid black;
-    width: 350px;
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-items: center;
-    word-wrap: break-word;
-    text-align: center;
+    background-color: white;
 }
 
-.connectionBtn-unpressed p {
-    margin: 0;
-    padding: 0;
-    line-height: 1.2;
-}
-
-.connectionBtn-pressed p {
+.connectionBtn p {
     margin: 0;
     padding: 0;
     line-height: 1.2;

@@ -1,12 +1,7 @@
 import React from 'react'
 
 function ConnectionButton({ name, category, isPressed, handleClick }) {
-  let style;
-  if (isPressed) {
-    style = "connectionBtn-pressed";
-  } else {
-    style = "connectionBtn-unpressed";
-  }
+  let style = isPressed ? "connectionBtn connectionBtn-pressed" : "connectionBtn connectionBtn-unpressed";
   
   return (
     <div className={style} onClick={handleClick}>
