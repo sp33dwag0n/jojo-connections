@@ -38,6 +38,18 @@ function Puzzle() {
     setCharacters(puzzleObjectsArray);
 
   }
+
+  const connectionButtonPress = (id) => {
+    setPressedIds((prevPressedIds) => {
+      const newPressedIds = new Set(prevPressedIds);
+      if (newPressedIds.has(id)) {
+        newPressedIds.delete(id);
+      } else if (newPressedIds.size < 4) {
+        newPressedIds.add(id);
+      }
+      return newPressedIds;
+    });
+  }
   
   return (
     <div>
@@ -54,6 +66,7 @@ function Puzzle() {
               name={character.name} 
               category={character.category} 
               isPressed={isPressed}
+              handleClick={() => connectionButtonPress(character.id)}
             />
           )
         })}
