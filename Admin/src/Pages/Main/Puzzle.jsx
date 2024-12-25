@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ConnectionButton from './ConnectionButton';
 
@@ -9,6 +9,11 @@ function Puzzle() {
   const [characters, setCharacters] = useState(null);
   const [pressedIds, setPressedIds] = useState(new Set());
   
+  useEffect(() => {
+    const emptySet = new Set();
+    setPressedIds(emptySet);
+  }, [characters])
+
   const generatePuzzle = async () => {
     const response = await fetch(`http://localhost:5050/catagory/puzzle`);
     if (!response.ok) {

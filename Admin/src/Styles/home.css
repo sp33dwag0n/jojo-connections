@@ -45,7 +45,20 @@
     margin-top: 20px; /* Add space between grid and other elements */
 }
 
-.connectionBtn {
+.connectionBtn-pressed {
+    border: 1px solid black;
+    width: 350px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-items: center;
+    word-wrap: break-word;
+    text-align: center;
+    background-color: #bababa;
+}
+
+.connectionBtn-unpressed {
     border: 1px solid black;
     width: 350px;
     padding: 30px;
@@ -57,8 +70,13 @@
     text-align: center;
 }
 
-/* temp ptag css */
-.connectionBtn p {
+.connectionBtn-unpressed p {
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
+}
+
+.connectionBtn-pressed p {
     margin: 0;
     padding: 0;
     line-height: 1.2;
