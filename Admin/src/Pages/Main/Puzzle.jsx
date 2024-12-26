@@ -14,6 +14,12 @@ function Puzzle() {
     setPressedIds(emptySet);
   }, [characters])
 
+  useEffect(() => {
+    if (pressedIds.size == 4) {
+      console.log("Do something!");
+    }
+  }, [pressedIds])
+
   const generatePuzzle = async () => {
     const response = await fetch(`http://localhost:5050/catagory/puzzle`);
     if (!response.ok) {
