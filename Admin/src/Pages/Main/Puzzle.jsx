@@ -8,15 +8,17 @@ function Puzzle() {
   const puzzleInfo = useRef(null);
   const [characters, setCharacters] = useState(null);
   const [pressedIds, setPressedIds] = useState(new Set());
+  const [submitReady, setSubmitReady] = useState(false);
   
   useEffect(() => {
-    const emptySet = new Set();
-    setPressedIds(emptySet);
+    setPressedIds(new Set());
   }, [characters])
 
   useEffect(() => {
     if (pressedIds.size == 4) {
-      console.log("Do something!");
+      setSubmitReady(true);
+    } else {
+      setSubmitReady(false);
     }
   }, [pressedIds])
 
@@ -61,6 +63,25 @@ function Puzzle() {
       return newPressedIds;
     });
   }
+
+  const submitGuess = () => {
+    const first = characters.find(character => character.id === pressedIds.values().next().value);
+
+    for (let key in puzzleInfo.current) {
+      if (puzzleInfo.current[key] === first.category) {
+        let keyName = key + "Characters";
+        const correctCategory = puzzleInfo.current[keyName];
+        for (let character of correctCategory) {
+          if (!pressedIds.has(character._id)) {
+            console.log("WRONG!");
+            return;
+          }
+        }
+        console.log(first.category + " is guessed CORRECT!");
+        break;
+      }
+    }
+  }
   
   return (
     <div>
@@ -82,7 +103,7 @@ function Puzzle() {
           )
         })}
       </div>
-      
+      {characters && <button className="btn" disabled={!submitReady} onClick={() => submitGuess()}> Submit </button>}
       
     </div>
   )
