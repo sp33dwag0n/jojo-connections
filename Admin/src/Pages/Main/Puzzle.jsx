@@ -9,6 +9,7 @@ function Puzzle() {
   const [characters, setCharacters] = useState(null);
   const [pressedIds, setPressedIds] = useState(new Set());
   const [submitReady, setSubmitReady] = useState(false);
+  const [lives, setLives] = useState(0);
   
   useEffect(() => {
     setPressedIds(new Set());
@@ -23,6 +24,7 @@ function Puzzle() {
   }, [pressedIds])
 
   const generatePuzzle = async () => {
+    
     const response = await fetch(`http://localhost:5050/catagory/puzzle`);
     if (!response.ok) {
       const message = `An error occurred: ${response.statusText}`;
@@ -34,7 +36,7 @@ function Puzzle() {
     puzzleInfo.current = generatedPuzzle;
 
     const categories = ['easy', 'medium', 'hard', 'extreme'];
-    const puzzleObjectsArray = [];
+    let puzzleObjectsArray = [];
     for (let category of categories) {
       const categoryName = generatedPuzzle[category];
       const characters = generatedPuzzle[`${category}Characters`];
@@ -47,9 +49,9 @@ function Puzzle() {
         })
       }
     }
-    shuffle(puzzleObjectsArray);
+    puzzleObjectsArray = shuffle(puzzleObjectsArray);
     setCharacters(puzzleObjectsArray);
-
+    setLives(4);
   }
 
   const connectionButtonPress = (id) => {
@@ -71,15 +73,21 @@ function Puzzle() {
       if (puzzleInfo.current[key] === first.category) {
         let keyName = key + "Characters";
         const correctCategory = puzzleInfo.current[keyName];
+        let isCorrect = true;
         for (let character of correctCategory) {
           if (!pressedIds.has(character._id)) {
-            console.log("WRONG!");
-            return;
+            isCorrect = false;
+            break;
           }
         }
-        console.log(first.category + " is guessed CORRECT!");
-        setCharacters(prev => prev.filter(character => !pressedIds.has(character.id)))
-        break;
+
+        if (isCorrect) {
+          console.log(first.category + " is guessed CORRECT!");
+          setCharacters(prev => prev.filter(character => !pressedIds.has(character.id)))
+        } else {
+          setLives(prev => prev - 1);
+        }
+        
       }
     }
   }
@@ -119,8 +127,12 @@ function Puzzle() {
         <div className='btn-container'>
           <button className="btn" disabled={!submitReady} onClick={() => submitGuess()}> Submit </button>
           <button className="btn" onClick={() => setCharacters(prev => shuffle(prev))}> Shuffle </button>
+          <p>Lives Left: {lives} </p>
         </div>
         )}
+      <div>
+        
+      </div>
     </div>
   )
 }
