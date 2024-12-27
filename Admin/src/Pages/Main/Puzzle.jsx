@@ -47,7 +47,7 @@ function Puzzle() {
         })
       }
     }
-
+    shuffle(puzzleObjectsArray);
     setCharacters(puzzleObjectsArray);
 
   }
@@ -78,9 +78,21 @@ function Puzzle() {
           }
         }
         console.log(first.category + " is guessed CORRECT!");
+        setCharacters(prev => prev.filter(character => !pressedIds.has(character.id)))
         break;
       }
     }
+  }
+
+  function shuffle(arr) { // Durstenfeld shuffle
+    let ans = [...arr];
+    for (var i = ans.length - 1; i >= 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = ans[i];
+      ans[i] = ans[j];
+      ans[j] = temp;
+    }
+    return ans;
   }
   
   return (
@@ -103,8 +115,12 @@ function Puzzle() {
           )
         })}
       </div>
-      {characters && <button className="btn" disabled={!submitReady} onClick={() => submitGuess()}> Submit </button>}
-      
+        {characters && (
+        <div className='btn-container'>
+          <button className="btn" disabled={!submitReady} onClick={() => submitGuess()}> Submit </button>
+          <button className="btn" onClick={() => setCharacters(prev => shuffle(prev))}> Shuffle </button>
+        </div>
+        )}
     </div>
   )
 }
