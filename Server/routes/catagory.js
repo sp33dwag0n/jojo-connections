@@ -15,64 +15,63 @@ catagory.get("/puzzle", async (req, res) => {
         {$sample: { size: 1 }}
     ]).toArray();
     extreme = extreme[0];
-    extreme.characters = extreme.characters.sort(() => 0.5 - Math.random()).slice(0, 4);
+    let extremeSelected = extreme.characters.sort(() => 0.5 - Math.random()).slice(0, 4);
     
     let hard = await catagories.aggregate([
-        {$match: { difficulty: 2, characters: { $not: { $elemMatch: { $in: extreme.characters } } } }}
+        {$match: { difficulty: 2, characters: { $not: { $elemMatch: { $in: extremeSelected } } } }}
     ]).toArray();
     hard = hard.sort(() => 0.5 - Math.random());
+    let hardSelected = [];
     for (let i = 0; i < hard.length; i++) {
         hard[i].characters = hard[i].characters.filter(value => !extreme.characters.includes(value));
         if (hard[i].characters.length >= 4) {
             hard[i].characters = hard[i].characters.sort(() => 0.5 - Math.random());
-            hard[i].characters = hard[i].characters.slice(0, 4);
+            hardSelected = hard[i].characters.slice(0, 4);
             hard = hard[i];
             break;
         }
     }
 
     let medium = await catagories.aggregate([
-        {$match: { difficulty: 1, characters: { $not: { $elemMatch: { $in: extreme.characters, $in: hard.characters } } } }}
+        {$match: { difficulty: 1, characters: { $not: { $elemMatch: { $in: extremeSelected, $in: hardSelected } } } }}
     ]).toArray();
     medium = medium.sort(() => 0.5 - Math.random());
+    let mediumSelected = [];
     for (let i = 0; i < medium.length; i++) {
         medium[i].characters = medium[i].characters.filter(value => !extreme.characters.includes(value) && !hard.characters.includes(value));
         if (medium[i].characters.length >= 4) {
             medium[i].characters = medium[i].characters.sort(() => 0.5 - Math.random());
-            medium[i].characters = medium[i].characters.slice(0, 4);
+            mediumSelected = medium[i].characters.slice(0, 4);
             medium = medium[i];
             break;
         }
     }
 
     let easy = await catagories.aggregate([
-        {$match: { difficulty: 0, characters: { $not: { $elemMatch: { $in: extreme.characters, $in: hard.characters, $in: medium.characters } } } }}
+        {$match: { difficulty: 0, characters: { $not: { $elemMatch: { $in: extremeSelected, $in: hardSelected, $in: mediumSelected } } } }}
     ]).toArray();
     easy = easy.sort(() => 0.5 - Math.random());
+    let easySelected = [];
     for (let i = 0; i < easy.length; i++) {
         easy[i].characters = easy[i].characters.filter(value => !extreme.characters.includes(value) && !hard.characters.includes(value) && !medium.characters.includes(value));
         if (easy[i].characters.length >= 4) {
             easy[i].characters = easy[i].characters.sort(() => 0.5 - Math.random());
-            easy[i].characters = easy[i].characters.slice(0, 4);
+            easySelected = easy[i].characters.slice(0, 4);
             easy = easy[i];
             break;
         }
     }
 
-    let extremeCharacters = [];
-    let hardCharacters = [];
-    let mediumCharacters = [];
-    let easyCharacters = [];
     for (let i = 0; i < 4; i++) {
-        extremeCharacters[i] = await characters.findOne({ _id: ObjectId.createFromHexString(extreme.characters[i]) });
-        hardCharacters[i] = await characters.findOne({ _id: ObjectId.createFromHexString(hard.characters[i]) });
-        mediumCharacters[i] = await characters.findOne({ _id: ObjectId.createFromHexString(medium.characters[i]) });
-        easyCharacters[i] = await characters.findOne({ _id: ObjectId.createFromHexString(easy.characters[i]) });
+        extremeSelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(extremeSelected[i]) });
+        hardSelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(hardSelected[i]) });
+        mediumSelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(mediumSelected[i]) });
+        easySelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(easySelected[i]) });
     }
-    easy.characters = easyCharacters;
-    medium.characters = mediumCharacters;
-    hard.characters = hardCharacters;
-    extreme.characters = extremeCharacters;
+    easy.characters = easySelected;
+    medium.characters = mediumSelected;
+    hard.characters = hardSelected;
+    extreme.characters = extremeSelected;
     
     let results = [easy, medium, hard, extreme];
     res.send(results).status(200);

@@ -6,7 +6,7 @@ function CorrectCategory({ category }) {
     return (
         <div className={style}>
             <p>{category.name}</p>
-            <p>{category.characters[0].name} {category.characters[1].name} {category.characters[2].name} {category.characters[3].name}</p>
+            <p>{category.characters[0].name}, {category.characters[1].name}, {category.characters[2].name}, {category.characters[3].name}</p>
         </div>
     )
 }
