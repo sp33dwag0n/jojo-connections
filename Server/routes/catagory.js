@@ -11,14 +11,14 @@ catagory.get("/puzzle", async (req, res) => {
     let characters = await db.collection("characters");
 
     let extreme = await catagories.aggregate([
-        {$match: { difficulty: 4 }},
+        {$match: { difficulty: 3 }},
         {$sample: { size: 1 }}
     ]).toArray();
     extreme = extreme[0];
     extreme.characters = extreme.characters.sort(() => 0.5 - Math.random()).slice(0, 4);
     
     let hard = await catagories.aggregate([
-        {$match: { difficulty: 3, characters: { $not: { $elemMatch: { $in: extreme.characters } } } }}
+        {$match: { difficulty: 2, characters: { $not: { $elemMatch: { $in: extreme.characters } } } }}
     ]).toArray();
     hard = hard.sort(() => 0.5 - Math.random());
     for (let i = 0; i < hard.length; i++) {
@@ -32,7 +32,7 @@ catagory.get("/puzzle", async (req, res) => {
     }
 
     let medium = await catagories.aggregate([
-        {$match: { difficulty: 2, characters: { $not: { $elemMatch: { $in: extreme.characters, $in: hard.characters } } } }}
+        {$match: { difficulty: 1, characters: { $not: { $elemMatch: { $in: extreme.characters, $in: hard.characters } } } }}
     ]).toArray();
     medium = medium.sort(() => 0.5 - Math.random());
     for (let i = 0; i < medium.length; i++) {
@@ -46,7 +46,7 @@ catagory.get("/puzzle", async (req, res) => {
     }
 
     let easy = await catagories.aggregate([
-        {$match: { difficulty: 1, characters: { $not: { $elemMatch: { $in: extreme.characters, $in: hard.characters, $in: medium.characters } } } }}
+        {$match: { difficulty: 0, characters: { $not: { $elemMatch: { $in: extreme.characters, $in: hard.characters, $in: medium.characters } } } }}
     ]).toArray();
     easy = easy.sort(() => 0.5 - Math.random());
     for (let i = 0; i < easy.length; i++) {

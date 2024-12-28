@@ -39,11 +39,8 @@ function Puzzle() {
     let puzzleObjectsArray = [];
     for (let category of generatedPuzzle) {
       for (let character of category.characters) {
-        puzzleObjectsArray.push({
-          id: character._id,
-          name: character.name,
-          difficulty: category.difficulty
-        })
+        character.difficulty = category.difficulty;
+        puzzleObjectsArray.push(character);
       }
     }
     puzzleObjectsArray = shuffle(puzzleObjectsArray);
@@ -73,7 +70,7 @@ function Puzzle() {
     }
 
     if (isCorrect) {
-      const index = pressedCharacters[0].difficulty - 1;
+      const index = pressedCharacters[0].difficulty;
       console.log("The " + difficulty[index] + " category of " + puzzleInfo.current[index].name + " is guessed CORRECT!");
       setCharacters(prev => prev.filter(character => !pressedCharacters.includes(character)));
     } else {
@@ -103,8 +100,9 @@ function Puzzle() {
           let isPressed = pressedCharacters.includes(character);
           return (
             <ConnectionButton 
-              key={character.id} 
-              name={character.name} 
+              key={character._id}
+              name={character.name}
+              part={character.part}
               isPressed={isPressed}
               handleClick={() => connectionButtonPress(character)}
             />

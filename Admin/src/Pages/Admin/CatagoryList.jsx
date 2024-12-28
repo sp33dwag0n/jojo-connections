@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 function CatagoryList() {
   const navigate = useNavigate();
   const [catagoryList, setCatagoryList] = useState([]);
-  const diff = ["", "Easy", "Medium", "Hard", "Extreme"];
+  const diff = ["Easy", "Medium", "Hard", "Extreme"];
 
   async function getCatagoryList() {
     const response = await fetch(`http://localhost:5050/catagory/`);

@@ -132,10 +132,10 @@ function AddCatagory() {
         <label>Difficulty: </label>
         <select name="difficulty" id="difficulty" onChange={handleChange} required>
           <option value="">Select Difficulty</option>
-          <option value="1">Easy</option>
-          <option value="2">Medium</option>
-          <option value="3">Hard</option>
-          <option value="4">Extreme</option>
+          <option value="0">Easy</option>
+          <option value="1">Medium</option>
+          <option value="2">Hard</option>
+          <option value="3">Extreme</option>
         </select>
         <br />
         
