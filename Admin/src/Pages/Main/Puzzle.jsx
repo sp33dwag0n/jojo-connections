@@ -10,6 +10,7 @@ function Puzzle() {
   const [pressedCharacters, setPressedCharacters] = useState([]);
   const [submitReady, setSubmitReady] = useState(false);
   const [lives, setLives] = useState(0);
+  const difficulty = ['easy', 'medium', 'hard', 'extreme'];
   
   useEffect(() => {
     setPressedCharacters([]);
@@ -32,20 +33,16 @@ function Puzzle() {
       return;
     }
     const generatedPuzzle = await response.json();
-    console.log(generatedPuzzle);
     puzzleInfo.current = generatedPuzzle;
+    console.log(generatedPuzzle);
 
-    const categories = ['easy', 'medium', 'hard', 'extreme'];
     let puzzleObjectsArray = [];
-    for (let category of categories) {
-      const categoryName = generatedPuzzle[category];
-      const characters = generatedPuzzle[`${category}Characters`];
-
-      for (let character of characters) {
+    for (let category of generatedPuzzle) {
+      for (let character of category.characters) {
         puzzleObjectsArray.push({
           id: character._id,
           name: character.name,
-          category: categoryName
+          difficulty: category.difficulty
         })
       }
     }
@@ -70,13 +67,14 @@ function Puzzle() {
   const submitGuess = () => {
     let isCorrect = true;
     for (let i = 1; i < pressedCharacters.length; i++) {
-      if (pressedCharacters[i].category != pressedCharacters[0].category) {
+      if (pressedCharacters[i].difficulty != pressedCharacters[0].difficulty) {
         isCorrect = false;
       }
     }
 
     if (isCorrect) {
-      console.log(pressedCharacters[0].category + " is guessed CORRECT!");
+      const index = pressedCharacters[0].difficulty - 1;
+      console.log("The " + difficulty[index] + " category of " + puzzleInfo.current[index].name + " is guessed CORRECT!");
       setCharacters(prev => prev.filter(character => !pressedCharacters.includes(character)));
     } else {
       setLives(prev => prev - 1);
