@@ -7,21 +7,21 @@ function Puzzle() {
   const navigate = useNavigate();
   const puzzleInfo = useRef(null);
   const [characters, setCharacters] = useState(null);
-  const [pressedIds, setPressedIds] = useState(new Set());
+  const [pressedCharacters, setPressedCharacters] = useState([]);
   const [submitReady, setSubmitReady] = useState(false);
   const [lives, setLives] = useState(0);
   
   useEffect(() => {
-    setPressedIds(new Set());
+    setPressedCharacters([]);
   }, [characters])
 
   useEffect(() => {
-    if (pressedIds.size == 4) {
+    if (pressedCharacters.length == 4) {
       setSubmitReady(true);
     } else {
       setSubmitReady(false);
     }
-  }, [pressedIds])
+  }, [pressedCharacters])
 
   const generatePuzzle = async () => {
     
@@ -54,41 +54,32 @@ function Puzzle() {
     setLives(4);
   }
 
-  const connectionButtonPress = (id) => {
-    setPressedIds((prevPressedIds) => {
-      const newPressedIds = new Set(prevPressedIds);
-      if (newPressedIds.has(id)) {
-        newPressedIds.delete(id);
-      } else if (newPressedIds.size < 4) {
-        newPressedIds.add(id);
+  const connectionButtonPress = (character) => {
+    setPressedCharacters((prevPressedCharacters) => {
+      const newPressedCharacters = [...prevPressedCharacters];
+      let index = newPressedCharacters.indexOf(character);
+      if (index > -1) {
+        newPressedCharacters.splice(index, 1);
+      } else if (newPressedCharacters.length < 4) {
+        newPressedCharacters.push(character);
       }
-      return newPressedIds;
+      return newPressedCharacters;
     });
   }
 
   const submitGuess = () => {
-    const first = characters.find(character => character.id === pressedIds.values().next().value);
-
-    for (let key in puzzleInfo.current) {
-      if (puzzleInfo.current[key] === first.category) {
-        let keyName = key + "Characters";
-        const correctCategory = puzzleInfo.current[keyName];
-        let isCorrect = true;
-        for (let character of correctCategory) {
-          if (!pressedIds.has(character._id)) {
-            isCorrect = false;
-            break;
-          }
-        }
-
-        if (isCorrect) {
-          console.log(first.category + " is guessed CORRECT!");
-          setCharacters(prev => prev.filter(character => !pressedIds.has(character.id)))
-        } else {
-          setLives(prev => prev - 1);
-        }
-        
+    let isCorrect = true;
+    for (let i = 1; i < pressedCharacters.length; i++) {
+      if (pressedCharacters[i].category != pressedCharacters[0].category) {
+        isCorrect = false;
       }
+    }
+
+    if (isCorrect) {
+      console.log(pressedCharacters[0].category + " is guessed CORRECT!");
+      setCharacters(prev => prev.filter(character => !pressedCharacters.includes(character)));
+    } else {
+      setLives(prev => prev - 1);
     }
   }
 
@@ -111,14 +102,13 @@ function Puzzle() {
       </div>
       <div className='connectionBtn-container'>
         {characters && characters.map((character) => {
-          let isPressed = pressedIds.has(character.id);
+          let isPressed = pressedCharacters.includes(character);
           return (
             <ConnectionButton 
               key={character.id} 
               name={character.name} 
-              category={character.category} 
               isPressed={isPressed}
-              handleClick={() => connectionButtonPress(character.id)}
+              handleClick={() => connectionButtonPress(character)}
             />
           )
         })}
