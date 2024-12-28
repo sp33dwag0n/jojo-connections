@@ -1,8 +1,11 @@
 import React from 'react'
 
-function CorrectCategory() {
+function CorrectCategory({ category }) {
   return (
-    <div>CorrectCategory</div>
+    <div>
+        <p>{category.name}</p>
+        <p>{category.characters[0].name} {category.characters[1].name} {category.characters[2].name} {category.characters[3].name}</p>
+    </div>
   )
 }
 

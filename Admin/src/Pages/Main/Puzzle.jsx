@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ConnectionButton from './ConnectionButton';
+import CorrectCategory from './CorrectCategory';
 
 
 function Puzzle() {
@@ -10,6 +11,7 @@ function Puzzle() {
   const [pressedCharacters, setPressedCharacters] = useState([]);
   const [submitReady, setSubmitReady] = useState(false);
   const [lives, setLives] = useState(0);
+  const [correctGuess, setCorrectGuess] = useState([]);
   const difficulty = ['easy', 'medium', 'hard', 'extreme'];
   
   useEffect(() => {
@@ -46,6 +48,7 @@ function Puzzle() {
     puzzleObjectsArray = shuffle(puzzleObjectsArray);
     setCharacters(puzzleObjectsArray);
     setLives(4);
+    setCorrectGuess([false, false, false, false])
   }
 
   const connectionButtonPress = (character) => {
@@ -73,6 +76,11 @@ function Puzzle() {
       const index = pressedCharacters[0].difficulty;
       console.log("The " + difficulty[index] + " category of " + puzzleInfo.current[index].name + " is guessed CORRECT!");
       setCharacters(prev => prev.filter(character => !pressedCharacters.includes(character)));
+      setCorrectGuess((prev) => {
+        let updated = [...prev];
+        updated[index] = true;
+        return updated;
+      })
     } else {
       setLives(prev => prev - 1);
     }
@@ -95,6 +103,15 @@ function Puzzle() {
         <button className="btn" onClick={() => navigate("/admin")}>Admin</button>
         <button className="btn" onClick={() => generatePuzzle()}>Make Puzzle</button>
       </div>
+      
+      {characters && puzzleInfo.current.map((category, index) => {
+        if (correctGuess[index]) {
+          return <CorrectCategory key={index} category={category}/>
+        } else {
+          return null
+        }
+      })}
+      
       <div className='connectionBtn-container'>
         {characters && characters.map((character) => {
           let isPressed = pressedCharacters.includes(character);
