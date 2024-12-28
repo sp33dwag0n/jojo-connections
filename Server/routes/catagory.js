@@ -81,18 +81,35 @@ catagory.get("/puzzle", async (req, res) => {
 catagory.get("/", async (req, res) => {
     let catagories = await db.collection("catagories");
     let results = await catagories.find({}).toArray(); 
-    let characters = await db.collection("characters");
     
-    let length = results.length
-    for (let i = 0; i < length; i++) {
-        let characterNameArray = [];
-        for (let j = 0; j < results[i].characters.length; j++) {
-            let query = { _id: ObjectId.createFromHexString(results[i].characters[j]) };
-            let singleCharacter = await characters.findOne(query);
-            characterNameArray[j] = singleCharacter.name;
-        }
-        results[i].characterNames = characterNameArray;
-    }
+    // LMAOOOOOOOOOOOOOOOOOOOOO
+    // let characters = await db.collection("characters");
+    // let length = results.length
+    // for (let i = 0; i < length; i++) {
+    //     let characterNameArray = [];
+    //     for (let j = 0; j < results[i].characters.length; j++) {
+    //         let query = { _id: ObjectId.createFromHexString(results[i].characters[j]) };
+    //         let singleCharacter = await characters.findOne(query);
+    //         characterNameArray[j] = singleCharacter.name;
+    //     }
+    //     results[i].characterNames = characterNameArray;
+    // }
+
+
+    let characterIds = results.flatMap(category => category.characters);
+
+    let charactersArray = await db.collection("characters").find({ _id: { $in: characterIds.map(id => ObjectId.createFromHexString(id)) } }).toArray();
+    
+    let characterMap = charactersArray.reduce((map, character) => {
+        map[character._id.toString()] = character.name;
+        return map;
+    }, {});
+
+    results.forEach(category => {
+        category.characterNames = category.characters.map(characterId => characterMap[ObjectId.createFromHexString(characterId).toString()]);
+    });
+
+    
     res.send(results).status(200);
 });
 

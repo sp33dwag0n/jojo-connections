@@ -100,8 +100,8 @@ function Puzzle() {
   return (
     <div>
       <div className='btn-container'>
-        <button className="btn" onClick={() => navigate("/admin")}>Admin</button>
-        <button className="btn" onClick={() => generatePuzzle()}>Make Puzzle</button>
+        <button className="puzzle-btn" onClick={() => navigate("/admin")}>Admin</button>
+        <button className="puzzle-btn" onClick={() => generatePuzzle()}>Make Puzzle</button>
       </div>
       
       {characters && puzzleInfo.current.map((category, index) => {
@@ -128,8 +128,8 @@ function Puzzle() {
       </div>
         {characters && (
         <div className='btn-container'>
-          <button className="btn" disabled={!submitReady} onClick={() => submitGuess()}> Submit </button>
-          <button className="btn" onClick={() => setCharacters(prev => shuffle(prev))}> Shuffle </button>
+          <button className="puzzle-btn" disabled={!submitReady} onClick={() => submitGuess()}> Submit </button>
+          <button className="puzzle-btn" onClick={() => setCharacters(prev => shuffle(prev))}> Shuffle </button>
           <p>Lives Left: {lives} </p>
         </div>
         )}

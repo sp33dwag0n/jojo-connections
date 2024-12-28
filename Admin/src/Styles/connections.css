@@ -6,6 +6,25 @@
     margin-top: 20px; /* Add space between grid and other elements */
 }
 
+.puzzle-btn {
+    width: 200px;
+    height: 80px;
+    padding: 10px;
+    border-color: black;
+    margin: 30px;
+    cursor: pointer;
+}
+
+.puzzle-btn:hover:enabled {
+    background-color: #bababa;
+    border-color: #bababa;
+}
+
+.puzzle-btn:disabled {
+    border-color: #ccc;
+    outline: none;
+}
+
 .connectionBtn {
     border: 1px solid black;
     width: 350px;
