@@ -62,16 +62,24 @@ catagory.get("/puzzle", async (req, res) => {
         }
     }
 
-    for (let i = 0; i < 4; i++) {
-        extremeSelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(extremeSelected[i]) });
-        hardSelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(hardSelected[i]) });
-        mediumSelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(mediumSelected[i]) });
-        easySelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(easySelected[i]) });
-    }
-    easy.characters = easySelected;
-    medium.characters = mediumSelected;
-    hard.characters = hardSelected;
-    extreme.characters = extremeSelected;
+    // for (let i = 0; i < 4; i++) {
+    //     extremeSelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(extremeSelected[i]) });
+    //     hardSelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(hardSelected[i]) });
+    //     mediumSelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(mediumSelected[i]) });
+    //     easySelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(easySelected[i]) });
+    // }
+
+    let allCharacters = [...extremeSelected, ...hardSelected, ...mediumSelected, ...easySelected].map(id => ObjectId.createFromHexString(id));
+    let characterArray = await characters.find({ _id: { $in: allCharacters } }).toArray();
+    let characterMap = characterArray.reduce((map, character) => {
+        map[character._id.toString()] = character;
+        return map;
+    }, {});
+
+    easy.characters = easySelected.map(id => characterMap[ObjectId.createFromHexString(id).toString()]);
+    medium.characters = mediumSelected.map(id => characterMap[ObjectId.createFromHexString(id).toString()]);
+    hard.characters = hardSelected.map(id => characterMap[ObjectId.createFromHexString(id).toString()]);
+    extreme.characters = extremeSelected.map(id => characterMap[ObjectId.createFromHexString(id).toString()]);
     
     let results = [easy, medium, hard, extreme];
     res.send(results).status(200);
