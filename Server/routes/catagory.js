@@ -132,13 +132,15 @@ catagory.get("/:id", async (req, res) => {
     }
 
     let characters = await db.collection("characters");
-    let characterNameArray = [];
-    for (let i = 0; i < result.characters.length; i++) {
-        let catagoryQuery = { _id: ObjectId.createFromHexString(result.characters[i]) };
-        let singleCharacter = await characters.findOne(catagoryQuery);
-        characterNameArray[i] = singleCharacter.name;
-    }
-    result.characterNames = characterNameArray;
+    let charactersArray = await characters.find({ _id: { $in: result.characters.map(id => ObjectId.createFromHexString(id)) } }).toArray();
+    result.characterNames = charactersArray.map(character => character.name);
+
+    // for (let i = 0; i < result.characters.length; i++) {
+    //     let catagoryQuery = { _id: ObjectId.createFromHexString(result.characters[i]) };
+    //     let singleCharacter = await characters.findOne(catagoryQuery);
+    //     characterNameArray[i] = singleCharacter.name;
+    // }
+    // result.characterNames = characterNameArray;
 
     res.send(result).status(200);
 });
