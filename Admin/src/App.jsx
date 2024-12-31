@@ -5,6 +5,7 @@ import CatagoryList from './Pages/Admin/CatagoryList.jsx';
 import AddCatagory from './Pages/Admin/AddCatagory.jsx';
 import AdminHome from "./Pages/Admin/AdminHome.jsx";
 import Puzzle from "./Pages/Main/Puzzle.jsx";
+import LoginPage from "./Pages/Admin/LoginPage.jsx";
 import './Styles/modal.css';
 import './Styles/home.css';
 import './Styles/list.css';
@@ -21,7 +22,8 @@ function App() {
           <Routes>
             <Route exact path="/" element={<Puzzle />} />
             
-            <Route exact path="/admin" element={<AdminHome />} />
+            <Route exact path="/admin" element={<LoginPage />} />
+            <Route exact path="/admin/home" element={<AdminHome />} />
             <Route exact path="/admin/characters" element={<CharacterList />} />
             <Route exact path="/admin/characters/add" element={<AddCharacter />} />
             <Route exact path="/admin/characters/edit/:id" element={<AddCharacter />} />
