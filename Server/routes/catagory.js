@@ -7,8 +7,8 @@ const catagory = express.Router();
 
 // Make puzzle
 catagory.get("/puzzle", async (req, res) => {
-    let catagories = await db.collection("catagories");
-    let characters = await db.collection("characters");
+    let catagories = db.collection("catagories");
+    let characters = db.collection("characters");
 
     let extreme = await catagories.aggregate([
         {$match: { difficulty: 3 }},
@@ -123,7 +123,7 @@ catagory.get("/", async (req, res) => {
 
 // Query one catagory
 catagory.get("/:id", async (req, res) => {
-    let catagories = await db.collection("catagories");
+    let catagories = db.collection("catagories");
     let query = { _id: ObjectId.createFromHexString(req.params.id) };
     let result = await catagories.findOne(query);
 
@@ -131,7 +131,7 @@ catagory.get("/:id", async (req, res) => {
         res.send("Catagory not found").status(404);
     }
 
-    let characters = await db.collection("characters");
+    let characters = db.collection("characters");
     let charactersArray = await characters.find({ _id: { $in: result.characters.map(id => ObjectId.createFromHexString(id)) } }).toArray();
     result.characterNames = charactersArray.map(character => character.name);
 
@@ -154,7 +154,7 @@ catagory.post("/", async (req, res) => {
             difficulty: Number(req.body.difficulty)
         };
 
-        let catagories = await db.collection("catagories");
+        let catagories = db.collection("catagories");
         let result = await catagories.insertOne(newDocument);
         res.send(result).status(204);
     } catch (err) {
@@ -175,7 +175,7 @@ catagory.patch("/:id", async (req, res) => {
             }
         };
 
-        let catagories = await db.collection("catagories");
+        let catagories = db.collection("catagories");
         let result = await catagories.updateOne(query, updates);
         res.send(result).status(200);
     } catch (err) {
@@ -189,7 +189,7 @@ catagory.delete("/:id", async (req, res) => {
     try {
         const query = { _id: ObjectId.createFromHexString(req.params.id) };
 
-        const catagories = await db.collection("catagories");
+        const catagories = db.collection("catagories");
         let result = await catagories.deleteOne(query);
         res.send(result).status(200);
     } catch (err) {
