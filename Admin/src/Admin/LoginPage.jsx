@@ -47,7 +47,7 @@ function LoginPage() {
           </div>
           {error && <div style={{color: 'red'}}>{error}</div>}
           <div>
-            <button type="submit" className="btn">Login</button>
+            <button type="submit" className="header-btn">Login</button>
           </div>
         </form>
         

@@ -43,7 +43,7 @@ function CatagoryList() {
   return (
     <div>
         <div className="list-header">
-          <button className="header-button" onClick={() => navigate("/admin")}>Home</button>
+          <button className="header-button" onClick={() => navigate("/admin/home")}>Home</button>
           <div className="list-title">
             Catagory List
           </div>
