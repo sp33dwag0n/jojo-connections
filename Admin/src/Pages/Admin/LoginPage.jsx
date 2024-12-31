@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 function LoginPage() {
-  
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -27,6 +28,7 @@ function LoginPage() {
       const data = await response.json();
 
       localStorage.setItem('authToken', data.token);
+      navigate("/admin/home")
     } catch (err) {
       setError('Something went wrong. Please try again');
     }
