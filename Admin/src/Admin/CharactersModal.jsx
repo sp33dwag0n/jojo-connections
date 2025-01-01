@@ -7,7 +7,12 @@ function CharactersModal({ open, onClose, selectedCharacters, changeCharacters }
   const [groupedCharacterList, setGroupedCharacterList] = useState([]);
 
   async function getCharacterList() {
-    const response = await fetch(`http://localhost:5050/character/`);
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:5050/character/`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
     if (!response.ok) {
       const message = `An error occurred: ${response.statusText}`;
       console.error(message);

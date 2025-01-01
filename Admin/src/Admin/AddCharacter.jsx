@@ -16,7 +16,12 @@ function AddCharacter() {
   }, []);
 
   async function getCharacter(id) {
-    const response = await fetch(`http://localhost:5050/character/` + id);
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:5050/character/` + id, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
     if (!response.ok) {
       const message = `An error occurred: ${response.statusText}`;
       console.error(message);
@@ -35,10 +40,12 @@ function AddCharacter() {
 
     if (id) {
       try {
+        const token = localStorage.getItem('authToken');
         let response = await fetch("http://localhost:5050/character/" + id, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
           },
           body: JSON.stringify(person),
         });
@@ -47,10 +54,12 @@ function AddCharacter() {
       }
     } else {
       try {
+        const token = localStorage.getItem('authToken');
         let response = await fetch("http://localhost:5050/character", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
           },
           body: JSON.stringify(person),
         });

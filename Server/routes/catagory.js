@@ -1,6 +1,7 @@
 import express from "express";
 import db from "../db/connection.js";
 import { ObjectId } from "mongodb";
+import verify from "../verify.js";
 
 
 const catagory = express.Router();
@@ -86,7 +87,7 @@ catagory.get("/puzzle", async (req, res) => {
 });
 
 // Get catagory list
-catagory.get("/", async (req, res) => {
+catagory.get("/", verify, async (req, res) => {
     let catagories = await db.collection("catagories");
     let results = await catagories.find({}).toArray(); 
     
@@ -122,7 +123,7 @@ catagory.get("/", async (req, res) => {
 });
 
 // Query one catagory
-catagory.get("/:id", async (req, res) => {
+catagory.get("/:id", verify, async (req, res) => {
     let catagories = db.collection("catagories");
     let query = { _id: ObjectId.createFromHexString(req.params.id) };
     let result = await catagories.findOne(query);
@@ -146,7 +147,7 @@ catagory.get("/:id", async (req, res) => {
 });
 
 // Add catagory
-catagory.post("/", async (req, res) => {
+catagory.post("/", verify, async (req, res) => {
     try {
         let newDocument = {
             name: req.body.name,
@@ -164,7 +165,7 @@ catagory.post("/", async (req, res) => {
 });
 
 // Update catagory
-catagory.patch("/:id", async (req, res) => {
+catagory.patch("/:id", verify, async (req, res) => {
     try {
         const query = { _id: ObjectId.createFromHexString(req.params.id) };
         const updates = {
@@ -185,7 +186,7 @@ catagory.patch("/:id", async (req, res) => {
 });
 
 // Delete catagory
-catagory.delete("/:id", async (req, res) => {
+catagory.delete("/:id", verify, async (req, res) => {
     try {
         const query = { _id: ObjectId.createFromHexString(req.params.id) };
 

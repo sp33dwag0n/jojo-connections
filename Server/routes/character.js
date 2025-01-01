@@ -1,20 +1,21 @@
 import express from "express";
 import db from "../db/connection.js";
 import { ObjectId } from "mongodb";
+import verify from "../verify.js";
 
 
 const character = express.Router();
 
 // Get character list
-character.get("/", async (req, res) => {
-    let characters = await db.collection("characters");
+character.get("/", verify, async (req, res) => {
+    let characters = db.collection("characters");
     let results = await characters.find({}).toArray();
     res.send(results).status(200);
 });
 
 // Query one character
-character.get("/:id", async (req, res) => {
-    let characters = await db.collection("characters");
+character.get("/:id", verify, async (req, res) => {
+    let characters = db.collection("characters");
     let query = { _id: ObjectId.createFromHexString(req.params.id) };
     let result = await characters.findOne(query);
 
@@ -26,7 +27,7 @@ character.get("/:id", async (req, res) => {
 });
 
 // Add character
-character.post("/", async (req, res) => {
+character.post("/", verify, async (req, res) => {
     try {
         let newDocument = {
             name: req.body.name,
@@ -34,7 +35,7 @@ character.post("/", async (req, res) => {
             img: ""
         };
 
-        let characters = await db.collection("characters");
+        let characters = db.collection("characters");
         let result = await characters.insertOne(newDocument);
         res.send(result).status(204);
     } catch (err) {
@@ -44,7 +45,7 @@ character.post("/", async (req, res) => {
 });
 
 // Update character
-character.patch("/:id", async (req, res) => {
+character.patch("/:id", verify, async (req, res) => {
     try {
         const query = { _id: ObjectId.createFromHexString(req.params.id) };
         const updates = {
@@ -55,7 +56,7 @@ character.patch("/:id", async (req, res) => {
             }
         };
 
-        let characters = await db.collection("characters");
+        let characters = db.collection("characters");
         let result = await characters.updateOne(query, updates);
         res.send(result).status(200);
     } catch (err) {
@@ -65,9 +66,9 @@ character.patch("/:id", async (req, res) => {
 });
 
 // Delete character
-character.delete("/:id", async (req, res) => {
+character.delete("/:id", verify, async (req, res) => {
     try {
-        const characters = await db.collection("characters");
+        const characters = db.collection("characters");
         const query = { _id: ObjectId.createFromHexString(req.params.id) };
         let result = await characters.deleteOne(query);
 

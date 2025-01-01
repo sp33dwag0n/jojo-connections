@@ -20,7 +20,12 @@ function AddCatagory() {
   }, []);
 
   async function getCatagory(id) {
-    const response = await fetch(`http://localhost:5050/catagory/` + id);
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:5050/catagory/` + id, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
     if (!response.ok) {
       const message = `An error occurred: ${response.statusText}`;
       console.error(message);
@@ -40,6 +45,7 @@ function AddCatagory() {
   async function handleSubmit(e) {
     e.preventDefault();
     
+    const token = localStorage.getItem('authToken')
     const person = { ...form };
 
     if (id) {
@@ -48,6 +54,7 @@ function AddCatagory() {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
           },
           body: JSON.stringify(person),
         });
@@ -60,6 +67,7 @@ function AddCatagory() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
           },
           body: JSON.stringify(person),
         });

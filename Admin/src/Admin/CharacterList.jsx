@@ -7,7 +7,12 @@ function CharacterList() {
 
   // This method fetches the records from the database.
   async function getCharacterList() {
-    const response = await fetch(`http://localhost:5050/character/`);
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:5050/character/`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
     if (!response.ok) {
       const message = `An error occurred: ${response.statusText}`;
       console.error(message);
@@ -30,8 +35,12 @@ function CharacterList() {
     if (!window.confirm("Delete " + character.name + " from Part " + character.part + "?")) return;
 
     try {
+      const token = localStorage.getItem('authToken');
       let response = await fetch("http://localhost:5050/character/" + character._id, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
       });
     } catch (err) {
       console.error(err);

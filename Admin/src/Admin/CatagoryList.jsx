@@ -7,7 +7,12 @@ function CatagoryList() {
   const diff = ["Easy", "Medium", "Hard", "Extreme"];
 
   async function getCatagoryList() {
-    const response = await fetch(`http://localhost:5050/catagory/`);
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`http://localhost:5050/catagory/`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
     if (!response.ok) {
       const message = `An error occurred: ${response.statusText}`;
       console.error(message);
@@ -30,8 +35,12 @@ function CatagoryList() {
     if (!window.confirm("Delete the " + diff[catagory.difficulty] + " catagory \"" + catagory.name + "\"?")) return;
 
     try {
+      const token = localStorage.getItem('authToken');
       let response = await fetch("http://localhost:5050/catagory/" + catagory._id, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
       });
     } catch (err) {
       console.error(err);
