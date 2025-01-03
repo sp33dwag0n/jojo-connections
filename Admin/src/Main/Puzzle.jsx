@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ConnectionButton from './ConnectionButton';
 import CorrectCategory from './CorrectCategory';
+import Notification from './Notification';
 
 
 function Puzzle() {
@@ -12,6 +13,7 @@ function Puzzle() {
   const [submitReady, setSubmitReady] = useState(false);
   const [lives, setLives] = useState(0);
   const [correctGuess, setCorrectGuess] = useState([]);
+  const [oneAway, setOneAway] = useState(false);
   const difficulty = ['easy', 'medium', 'hard', 'extreme'];
   
   useEffect(() => {
@@ -65,10 +67,22 @@ function Puzzle() {
   }
 
   const submitGuess = () => {
-    let isCorrect = true;
-    for (let i = 1; i < pressedCharacters.length; i++) {
-      if (pressedCharacters[i].difficulty != pressedCharacters[0].difficulty) {
-        isCorrect = false;
+    let isCorrect = false;
+    let selectedArray = [0, 0, 0, 0]
+    for (let character of pressedCharacters) {
+      selectedArray[character.difficulty]++;
+    }
+
+    for (let count of selectedArray) {
+      if (count === 4) {
+        isCorrect = true;
+        break;
+      } else if (count === 3) {
+        setOneAway(true);
+        setTimeout(() => setOneAway(false), 5000)
+        break;
+      } else if (count == 2) {
+        break;
       }
     }
 
@@ -104,6 +118,8 @@ function Puzzle() {
         <button className="puzzle-btn" onClick={() => generatePuzzle()}>Make Puzzle</button>
       </div>
       
+      {oneAway && <Notification />}
+
       {characters && puzzleInfo.current.map((category, index) => {
         if (correctGuess[index]) {
           return <CorrectCategory key={index} category={category}/>
