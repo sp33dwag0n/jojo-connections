@@ -1,8 +1,13 @@
 import React from 'react'
 
-function WinModal() {
+function WinModal({ open, onClose }) {
+  if (!open) return false;
+
   return (
-    <div>WinModal</div>
+    <div>
+      <p>WinModal</p>
+      <button onClick={onClose}> Close </button>
+    </div>
   )
 }
 

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import ConnectionButton from './ConnectionButton';
 import CorrectCategory from './CorrectCategory';
 import Notification from './Notification';
+import WinModal from './WinModal';
+import LoseModal from './LoseModal';
 
 
 function Puzzle() {
@@ -14,6 +16,8 @@ function Puzzle() {
   const [lives, setLives] = useState(0);
   const [correctGuess, setCorrectGuess] = useState([]);
   const [oneAway, setOneAway] = useState(false);
+  const [loseModal, setLoseModal] = useState(false);
+  const [winModal, setWinModal] = useState(false);
   const difficulty = ['easy', 'medium', 'hard', 'extreme'];
   
   useEffect(() => {
@@ -150,7 +154,14 @@ function Puzzle() {
         </div>
         )}
       <div>
-        
+        <WinModal open={winModal} onClose={() => setWinModal(false)}/>
+        <LoseModal open={loseModal} onClose={() => setLoseModal(false)}/>
+      </div>
+
+      {/* Temporary modal buttons*/}
+      <div>
+        <button className='puzzle-btn' onClick={() => setWinModal(true)}> Win Modal </button>
+        <button className='puzzle-btn' onClick={() => setLoseModal(true)}> Lose Modal </button>
       </div>
     </div>
   )

@@ -1,8 +1,13 @@
 import React from 'react'
 
-function LoseModal() {
+function LoseModal({ open, onClose, puzzleInfo }) {
+  if (!open) return false;
+
   return (
-    <div>LoseModal</div>
+    <div>
+      <p>LoseModal</p>
+      <button onClick={onClose}> Close </button>
+    </div>
   )
 }
 
