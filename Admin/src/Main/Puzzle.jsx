@@ -155,7 +155,7 @@ function Puzzle() {
         )}
       <div>
         <WinModal open={winModal} onClose={() => setWinModal(false)}/>
-        <LoseModal open={loseModal} onClose={() => setLoseModal(false)}/>
+        <LoseModal open={loseModal} onClose={() => setLoseModal(false)} puzzleInfo={puzzleInfo.current}/>
       </div>
 
       {/* Temporary modal buttons*/}

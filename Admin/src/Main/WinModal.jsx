@@ -5,7 +5,7 @@ function WinModal({ open, onClose }) {
 
   return (
     <div>
-      <p>WinModal</p>
+      <p>You win!</p>
       <button onClick={onClose}> Close </button>
     </div>
   )
