@@ -1,33 +1,12 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';  // Correct import
+import { Navigate } from 'react-router';
+import { isLoggedIn } from '../auth';
 
-const PrivateRoute = ({ element, ...rest }) => {
-  const token = localStorage.getItem('authToken');  // Retrieve the token from localStorage
-
-  // If no token, or the token is expired, redirect to the login page
-  if (!token) {
-    console.log("Login first!");
-    return <Navigate to="/admin" />;
+// Renders the protected element only when there's a valid, unexpired admin token
+function PrivateRoute({ element }) {
+  if (!isLoggedIn()) {
+    return <Navigate to="/admin" replace />;
   }
-
-  try {
-    const decodedToken = jwtDecode(token);  // Decode the JWT token correctly
-    const expirationTime = decodedToken.exp * 1000;  // Convert exp to milliseconds
-    const currentTime = Date.now();
-
-    // If the token is expired, remove it and redirect to the login page
-    if (currentTime > expirationTime) {
-      localStorage.removeItem('authToken');
-      return <Navigate to="/admin" />;
-    }
-  } catch (error) {
-    // In case of error (e.g., invalid token), redirect to the login page
-    return <Navigate to="/admin" />;
-  }
-
-  // If the user is authenticated and the token is valid, render the protected route
-  return element;  // Render the protected component directly
-};
+  return element;
+}
 
 export default PrivateRoute;

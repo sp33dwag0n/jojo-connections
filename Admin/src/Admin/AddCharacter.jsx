@@ -1,121 +1,87 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router';
+import AdminLayout from './AdminLayout';
+import Button from '../components/Button';
+import Spinner from '../components/Spinner';
+import Field, { ErrorMessage, inputClass } from '../components/Field';
+import { api } from '../api';
+import { PARTS } from '../constants';
 
 function AddCharacter() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [form, setForm] = useState({
-    name: "",
-    part: ""
-  })
+  const [form, setForm] = useState({ name: "", part: "" });
+  const [loading, setLoading] = useState(Boolean(id));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (id) {
-      getCharacter(id);
-    }
-  }, []);
-
-  async function getCharacter(id) {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:5050/character/` + id, {
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    });
-    if (!response.ok) {
-      const message = `An error occurred: ${response.statusText}`;
-      console.error(message);
-      return;
-    }
-    const character = await response.json();
-    document.getElementById("name").value = character.name;
-    document.getElementById("part").value = character.part;
-    setForm({name: character.name, part: character.part});
-  }
+    if (!id) return;
+    api('/character/' + id)
+      .then((character) => setForm({ name: character.name, part: String(character.part) }))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [id]);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    
-    const person = { ...form };
+    setError('');
+    setSaving(true);
 
-    if (id) {
-      try {
-        const token = localStorage.getItem('authToken');
-        let response = await fetch("http://localhost:5050/character/" + id, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify(person),
-        });
-      } catch (err) {
-        console.error(err);
-      }
-    } else {
-      try {
-        const token = localStorage.getItem('authToken');
-        let response = await fetch("http://localhost:5050/character", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify(person),
-        });
-      } catch (err) {
-        console.error(err);
-      }
+    try {
+      await api(id ? '/character/' + id : '/character', {
+        method: id ? 'PATCH' : 'POST',
+        body: form,
+      });
+      navigate('/admin/characters');
+    } catch (err) {
+      setError(err.message);
+      setSaving(false);
     }
-
-    navigate("/admin/characters/");
   }
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  let headerLabel = "Add Character";
-  if (id) {
-    headerLabel = "Edit Character";
-  }
-  
   return (
-    <div className="">
-      <div>
-        <button onClick={() => navigate("/admin/characters/")}>
-          Character List
-        </button>
-      </div>
-      <div>
-        <h3>{headerLabel}</h3>
-      </div>
-      <form onSubmit={handleSubmit}>
-        <label>Name: </label>
-        <input type="text" name="name" id="name" placeholder="Name" onChange={handleChange} required/>
-        <br />
+    <AdminLayout title={id ? 'Edit Character' : 'Add Character'}>
+      <form
+        onSubmit={handleSubmit}
+        className="flex max-w-lg flex-col gap-5 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
+      >
+        {loading ? (
+          <div className="flex justify-center py-8"><Spinner /></div>
+        ) : (
+          <>
+            <Field label="Name" htmlFor="name">
+              <input
+                type="text" name="name" id="name" placeholder="e.g. Jotaro Kujo" autoFocus required
+                className={inputClass} value={form.name} onChange={handleChange}
+              />
+            </Field>
 
-        <label>Part: </label>
-        <select name="part" id="part" onChange={handleChange} required>
-          <option value="">Select Part</option>
-          <option value="1">Part 1</option>
-          <option value="2">Part 2</option>
-          <option value="3">Part 3</option>
-          <option value="4">Part 4</option>
-          <option value="5">Part 5</option>
-          <option value="6">Part 6</option>
-          <option value="7">Part 7</option>
-          <option value="8">Part 8</option>
-          <option value="9">Part 9</option>
-        </select>
-        <br />
-        
-        <button type="submit">Submit</button>
+            <Field label="Part" htmlFor="part">
+              <select name="part" id="part" required className={inputClass} value={form.part} onChange={handleChange}>
+                <option value="">Select part</option>
+                {PARTS.map((part) => (
+                  <option key={part} value={part}>Part {part}</option>
+                ))}
+              </select>
+            </Field>
+          </>
+        )}
+
+        <ErrorMessage>{error}</ErrorMessage>
+
+        <div className="flex justify-end gap-2 border-t border-stone-100 pt-4">
+          <Button variant="subtle" onClick={() => navigate('/admin/characters')}>Cancel</Button>
+          <Button type="submit" variant="primary" disabled={saving || loading}>
+            {saving ? 'Saving…' : id ? 'Save Changes' : 'Add Character'}
+          </Button>
+        </div>
       </form>
-    </div>
+    </AdminLayout>
   )
 }
 

@@ -1,99 +1,70 @@
 import express from "express";
 import db from "../db/connection.js";
-import { ObjectId } from "mongodb";
 import verify from "../verify.js";
+import { toObjectId, httpError } from "../util.js";
 
 
 const character = express.Router();
 
+function validateCharacter(body) {
+    const name = String(body?.name ?? "").trim();
+    const part = Number(body?.part);
+    if (!name) throw httpError(400, "Name is required");
+    if (!Number.isInteger(part) || part < 1) throw httpError(400, "Part must be a positive whole number");
+    return { name, part };
+}
+
 // Get character list
 character.get("/", verify, async (req, res) => {
     let characters = db.collection("characters");
-    let results = await characters.find({}).toArray();
-    res.send(results).status(200);
+    let results = await characters.find({}).sort({ part: 1, name: 1 }).toArray();
+    res.status(200).json(results);
 });
 
 // Query one character
 character.get("/:id", verify, async (req, res) => {
     let characters = db.collection("characters");
-    let query = { _id: ObjectId.createFromHexString(req.params.id) };
-    let result = await characters.findOne(query);
+    let result = await characters.findOne({ _id: toObjectId(req.params.id) });
 
     if (!result) {
-        res.send("Character not found").status(404);
-    } else {
-        res.send(result).status(200);
+        return res.status(404).json({ message: "Character not found" });
     }
+    res.status(200).json(result);
 });
 
 // Add character
 character.post("/", verify, async (req, res) => {
-    try {
-        let newDocument = {
-            name: req.body.name,
-            part: Number(req.body.part),
-            img: ""
-        };
+    const newDocument = { ...validateCharacter(req.body), img: "" };
 
-        let characters = db.collection("characters");
-        let result = await characters.insertOne(newDocument);
-        res.send(result).status(204);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error adding character");
-    }
+    let characters = db.collection("characters");
+    let result = await characters.insertOne(newDocument);
+    res.status(201).json(result);
 });
 
 // Update character
 character.patch("/:id", verify, async (req, res) => {
-    try {
-        const query = { _id: ObjectId.createFromHexString(req.params.id) };
-        const updates = {
-            $set: {
-                name: req.body.name,
-                part: Number(req.body.part),
-                img: ""
-            }
-        };
+    const query = { _id: toObjectId(req.params.id) };
+    const updates = { $set: validateCharacter(req.body) };
 
-        let characters = db.collection("characters");
-        let result = await characters.updateOne(query, updates);
-        res.send(result).status(200);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error updating character")
+    let characters = db.collection("characters");
+    let result = await characters.updateOne(query, updates);
+    if (result.matchedCount === 0) {
+        return res.status(404).json({ message: "Character not found" });
     }
+    res.status(200).json(result);
 });
 
-// Delete character
+// Delete character (and remove it from any catagories that reference it)
 character.delete("/:id", verify, async (req, res) => {
-    try {
-        const characters = db.collection("characters");
-        const query = { _id: ObjectId.createFromHexString(req.params.id) };
-        let result = await characters.deleteOne(query);
+    const query = { _id: toObjectId(req.params.id) };
+    let result = await db.collection("characters").deleteOne(query);
 
-        const catagories = await db.collection("catagories");
-        const catagoryQuery = { characters: req.params.id };
-        let catagoriesResult = await catagories.find(catagoryQuery).toArray();
+    await db.collection("catagories").updateMany(
+        { characters: req.params.id },
+        { $pull: { characters: req.params.id } }
+    );
 
-        for (let i = 0; i < catagoriesResult.length; i++) {
-            let index = catagoriesResult[i].characters.indexOf(req.params.id);
-            catagoriesResult[i].characters.splice(index, 1);
-            const updates = {
-                $set: {
-                    characters: catagoriesResult[i].characters,
-                }
-            };
-
-            let updateQuery = { _id: catagoriesResult[i]._id };
-            await catagories.updateOne(updateQuery, updates);
-        }
-        
-        res.send(result).status(200);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error deleting character")
-    }
+    res.status(200).json(result);
 });
 
 export default character;

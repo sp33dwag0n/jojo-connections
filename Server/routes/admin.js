@@ -2,30 +2,41 @@ import express from "express";
 import db from "../db/connection.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import verify from "../verify.js";
 
 
 const admin = express.Router();
 
 admin.post("/login", async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password } = req.body ?? {};
+    if (!username || !password) {
+        return res.status(400).json({ message: 'Username and password are required' });
+    }
+
     let collection = db.collection("admin");
     let login = await collection.findOne({ username });
 
-    if (login) {
-        const isValid = await bcrypt.compare(password, login.password);
-        if (isValid) {
-            const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '1h' });
-            res.json({ token })
-        } else {
-            res.status(401).json({ message: 'Invalid Credentials' });
-        }
-    } else {
-        res.status(404).json({ message: 'User not found' });
+    // Same response for unknown user and wrong password so usernames can't be probed
+    if (!login || !(await bcrypt.compare(password, login.password))) {
+        return res.status(401).json({ message: 'Invalid username or password' });
     }
+
+    const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token });
 });
 
-admin.post("/register", async (req, res) => {
-    const { username, password } = req.body;
+// The first admin can register freely; after that, registering requires an admin's token
+const registerGuard = async (req, res, next) => {
+    const count = await db.collection("admin").countDocuments({}, { limit: 1 });
+    if (count === 0) return next();
+    return verify(req, res, next);
+};
+
+admin.post("/register", registerGuard, async (req, res) => {
+    const { username, password } = req.body ?? {};
+    if (!username || !password) {
+        return res.status(400).json({ message: 'Username and password are required' });
+    }
 
     // Check if the user already exists
     let collection = db.collection("admin");

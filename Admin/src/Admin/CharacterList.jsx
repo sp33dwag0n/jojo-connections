@@ -1,86 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router';
+import AdminLayout from './AdminLayout';
+import Button from '../components/Button';
+import Spinner from '../components/Spinner';
+import { ErrorMessage, inputClass } from '../components/Field';
+import { api } from '../api';
 
 function CharacterList() {
   const navigate = useNavigate();
-  const [characterList, setCharacterList] = useState([]);
+  const [characterList, setCharacterList] = useState(null);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
 
-  // This method fetches the records from the database.
-  async function getCharacterList() {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`http://localhost:5050/character/`, {
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    });
-    if (!response.ok) {
-      const message = `An error occurred: ${response.statusText}`;
-      console.error(message);
-      return;
+  const getCharacterList = useCallback(async () => {
+    try {
+      setCharacterList(await api('/character/'));
+    } catch (err) {
+      setError(err.message);
     }
-    const characters = await response.json();
-    characters.sort((a, b) => a.part - b.part);
-    setCharacterList(characters);
-  }
-  
-  useEffect(() => {
-    getCharacterList();
   }, []);
 
-  const editCharacter = (id) => {
-    navigate("/admin/characters/edit/" + id);
-  }
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    getCharacterList();
+  }, [getCharacterList]);
 
   async function deleteCharacter(character) {
-    if (!window.confirm("Delete " + character.name + " from Part " + character.part + "?")) return;
-
+    if (!window.confirm(`Delete ${character.name} from Part ${character.part}? They'll also be removed from any categories.`)) return;
     try {
-      const token = localStorage.getItem('authToken');
-      let response = await fetch("http://localhost:5050/character/" + character._id, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      });
+      await api('/character/' + character._id, { method: 'DELETE' });
+      setCharacterList((prev) => prev.filter((c) => c._id !== character._id));
     } catch (err) {
-      console.error(err);
+      setError(err.message);
     }
-    getCharacterList();
   }
-  
+
+  const query = search.trim().toLowerCase();
+  const filtered = characterList?.filter((c) => c.name.toLowerCase().includes(query));
+
   return (
-    <div>
-        <div className="list-header">
-          <button className="header-button" onClick={() => navigate("/admin/home")}>Home</button>
-          <div className="list-title">
-            Character List
-          </div>
+    <AdminLayout
+      title="Characters"
+      actions={<Button variant="primary" onClick={() => navigate('/admin/characters/add')}>+ Add Character</Button>}
+    >
+      <ErrorMessage>{error}</ErrorMessage>
+
+      <div className="mt-2 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+        <div className="border-b border-stone-200 p-3">
+          <input
+            type="search"
+            placeholder="Search characters…"
+            className={`${inputClass} sm:max-w-xs`}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-        
-        <div className="list-body">
-          <button onClick={() => navigate("/admin/characters/add")}>Add Character</button>
-          <table>
-            <thead>
+
+        {!characterList ? (
+          <div className="flex justify-center py-12"><Spinner /></div>
+        ) : filtered.length === 0 ? (
+          <p className="py-12 text-center text-sm text-stone-500">
+            {characterList.length === 0 ? 'No characters yet. Add your first one!' : 'No characters match your search.'}
+          </p>
+        ) : (
+          <table className="w-full text-left text-sm">
+            <thead className="bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
               <tr>
-                <th>Name</th>
-                <th>Part</th>
+                <th className="px-4 py-3 font-semibold">Name</th>
+                <th className="px-4 py-3 font-semibold">Part</th>
+                <th className="px-4 py-3"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
-            <tbody>
-              {characterList.map((character, index) => {
-                return (
-                  <tr key={index}>
-                    <td>{character.name}</td>
-                    <td>{character.part}</td>
-                    <td><button onClick={() => editCharacter(character._id)}>Edit</button></td>
-                    <td><button onClick={() => deleteCharacter(character)}>Delete</button></td>
-                  </tr>
-                );
-              })}
+            <tbody className="divide-y divide-stone-100">
+              {filtered.map((character) => (
+                <tr key={character._id} className="transition hover:bg-stone-50">
+                  <td className="px-4 py-3 font-medium">{character.name}</td>
+                  <td className="px-4 py-3">
+                    <span className="rounded-md bg-stone-100 px-2 py-0.5 text-xs font-semibold text-stone-600">Part {character.part}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="subtle" size="sm" onClick={() => navigate('/admin/characters/edit/' + character._id)}>Edit</Button>
+                      <Button variant="danger" size="sm" onClick={() => deleteCharacter(character)}>Delete</Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
-        </div>
-    </div>
+        )}
+      </div>
+    </AdminLayout>
   )
 }
 

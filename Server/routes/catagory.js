@@ -1,202 +1,152 @@
 import express from "express";
 import db from "../db/connection.js";
-import { ObjectId } from "mongodb";
 import verify from "../verify.js";
+import { toObjectId, httpError, shuffle } from "../util.js";
 
 
 const catagory = express.Router();
 
+const GROUP_SIZE = 4;
+const DIFFICULTIES = [0, 1, 2, 3];
+
+function validateCatagory(body) {
+    const name = String(body?.name ?? "").trim();
+    const difficulty = Number(body?.difficulty);
+    const characters = Array.isArray(body?.characters) ? [...new Set(body.characters.map(String))] : [];
+    if (!name) throw httpError(400, "Name is required");
+    if (!DIFFICULTIES.includes(difficulty)) throw httpError(400, "Difficulty must be 0-3");
+    if (characters.length < GROUP_SIZE) throw httpError(400, `Pick at least ${GROUP_SIZE} characters`);
+    characters.forEach(toObjectId);
+    return { name, characters, difficulty };
+}
+
+// Map of character id string -> character document
+async function getCharacterMap(ids) {
+    const unique = [...new Set(ids)].filter(id => /^[0-9a-f]{24}$/i.test(id));
+    const docs = await db.collection("characters")
+        .find({ _id: { $in: unique.map(toObjectId) } })
+        .toArray();
+    return new Map(docs.map(doc => [doc._id.toString(), doc]));
+}
+
+// Try to pick one catagory per difficulty so that no character on the board fits more
+// than one of the chosen catagories (otherwise the puzzle would be ambiguous).
+function pickPuzzle(byDifficulty) {
+    const chosen = [];
+    const onBoard = new Set();       // characters shown to the player
+    const inChosen = new Set();      // every character belonging to a chosen catagory
+
+    // Hardest first: those catagories are usually the smallest pool
+    for (const difficulty of [...DIFFICULTIES].reverse()) {
+        let pick = null;
+        for (const cat of shuffle(byDifficulty[difficulty])) {
+            if (cat.characters.some(id => onBoard.has(id))) continue;
+            const available = cat.characters.filter(id => !inChosen.has(id));
+            if (available.length >= GROUP_SIZE) {
+                pick = { cat, selected: shuffle(available).slice(0, GROUP_SIZE) };
+                break;
+            }
+        }
+        if (!pick) return null;
+
+        pick.cat.characters.forEach(id => inChosen.add(id));
+        pick.selected.forEach(id => onBoard.add(id));
+        chosen[difficulty] = pick;
+    }
+    return chosen;
+}
+
 // Make puzzle
 catagory.get("/puzzle", async (req, res) => {
-    let catagories = db.collection("catagories");
-    let characters = db.collection("characters");
+    const all = await db.collection("catagories").find({}).toArray();
+    const characterMap = await getCharacterMap(all.flatMap(cat => cat.characters ?? []));
 
-    let extreme = await catagories.aggregate([
-        {$match: { difficulty: 3 }},
-        {$sample: { size: 1 }}
-    ]).toArray();
-    extreme = extreme[0];
-    let extremeSelected = extreme.characters.sort(() => 0.5 - Math.random()).slice(0, 4);
-    
-    let hard = await catagories.aggregate([
-        {$match: { difficulty: 2, characters: { $not: { $elemMatch: { $in: extremeSelected } } } }}
-    ]).toArray();
-    hard = hard.sort(() => 0.5 - Math.random());
-    let hardSelected = [];
-    for (let i = 0; i < hard.length; i++) {
-        hard[i].characters = hard[i].characters.filter(value => !extreme.characters.includes(value));
-        if (hard[i].characters.length >= 4) {
-            hard[i].characters = hard[i].characters.sort(() => 0.5 - Math.random());
-            hardSelected = hard[i].characters.slice(0, 4);
-            hard = hard[i];
-            break;
+    // Ignore references to characters that no longer exist
+    const byDifficulty = DIFFICULTIES.map(() => []);
+    for (const cat of all) {
+        const characters = (cat.characters ?? []).filter(id => characterMap.has(id));
+        if (DIFFICULTIES.includes(cat.difficulty) && characters.length >= GROUP_SIZE) {
+            byDifficulty[cat.difficulty].push({ ...cat, characters });
         }
     }
 
-    let medium = await catagories.aggregate([
-        {$match: { difficulty: 1, characters: { $not: { $elemMatch: { $in: extremeSelected, $in: hardSelected } } } }}
-    ]).toArray();
-    medium = medium.sort(() => 0.5 - Math.random());
-    let mediumSelected = [];
-    for (let i = 0; i < medium.length; i++) {
-        medium[i].characters = medium[i].characters.filter(value => !extreme.characters.includes(value) && !hard.characters.includes(value));
-        if (medium[i].characters.length >= 4) {
-            medium[i].characters = medium[i].characters.sort(() => 0.5 - Math.random());
-            mediumSelected = medium[i].characters.slice(0, 4);
-            medium = medium[i];
-            break;
+    const missing = DIFFICULTIES.filter(d => byDifficulty[d].length === 0);
+    if (missing.length) {
+        const names = ["Easy", "Medium", "Hard", "Extreme"];
+        return res.status(503).json({
+            message: `Not enough catagories to build a puzzle. Add at least one ${missing.map(d => names[d]).join(", ")} catagory with ${GROUP_SIZE}+ characters.`
+        });
+    }
+
+    // Random choices can dead-end, so retry a few times before giving up
+    for (let attempt = 0; attempt < 50; attempt++) {
+        const chosen = pickPuzzle(byDifficulty);
+        if (chosen) {
+            const results = chosen.map(({ cat, selected }) => ({
+                _id: cat._id,
+                name: cat.name,
+                difficulty: cat.difficulty,
+                characters: selected.map(id => characterMap.get(id)),
+            }));
+            return res.status(200).json(results);
         }
     }
 
-    let easy = await catagories.aggregate([
-        {$match: { difficulty: 0, characters: { $not: { $elemMatch: { $in: extremeSelected, $in: hardSelected, $in: mediumSelected } } } }}
-    ]).toArray();
-    easy = easy.sort(() => 0.5 - Math.random());
-    let easySelected = [];
-    for (let i = 0; i < easy.length; i++) {
-        easy[i].characters = easy[i].characters.filter(value => !extreme.characters.includes(value) && !hard.characters.includes(value) && !medium.characters.includes(value));
-        if (easy[i].characters.length >= 4) {
-            easy[i].characters = easy[i].characters.sort(() => 0.5 - Math.random());
-            easySelected = easy[i].characters.slice(0, 4);
-            easy = easy[i];
-            break;
-        }
-    }
-
-    // for (let i = 0; i < 4; i++) {
-    //     extremeSelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(extremeSelected[i]) });
-    //     hardSelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(hardSelected[i]) });
-    //     mediumSelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(mediumSelected[i]) });
-    //     easySelected[i] = await characters.findOne({ _id: ObjectId.createFromHexString(easySelected[i]) });
-    // }
-
-    let allCharacters = [...extremeSelected, ...hardSelected, ...mediumSelected, ...easySelected].map(id => ObjectId.createFromHexString(id));
-    let characterArray = await characters.find({ _id: { $in: allCharacters } }).toArray();
-    let characterMap = characterArray.reduce((map, character) => {
-        map[character._id.toString()] = character;
-        return map;
-    }, {});
-
-    easy.characters = easySelected.map(id => characterMap[ObjectId.createFromHexString(id).toString()]);
-    medium.characters = mediumSelected.map(id => characterMap[ObjectId.createFromHexString(id).toString()]);
-    hard.characters = hardSelected.map(id => characterMap[ObjectId.createFromHexString(id).toString()]);
-    extreme.characters = extremeSelected.map(id => characterMap[ObjectId.createFromHexString(id).toString()]);
-    
-    let results = [easy, medium, hard, extreme];
-    res.send(results).status(200);
+    res.status(503).json({
+        message: "Couldn't build a puzzle without overlapping characters. Try adding more catagories or characters."
+    });
 });
 
 // Get catagory list
 catagory.get("/", verify, async (req, res) => {
-    let catagories = await db.collection("catagories");
-    let results = await catagories.find({}).toArray(); 
-    
-    // LMAOOOOOOOOOOOOOOOOOOOOO
-    // let characters = await db.collection("characters");
-    // let length = results.length
-    // for (let i = 0; i < length; i++) {
-    //     let characterNameArray = [];
-    //     for (let j = 0; j < results[i].characters.length; j++) {
-    //         let query = { _id: ObjectId.createFromHexString(results[i].characters[j]) };
-    //         let singleCharacter = await characters.findOne(query);
-    //         characterNameArray[j] = singleCharacter.name;
-    //     }
-    //     results[i].characterNames = characterNameArray;
-    // }
+    let results = await db.collection("catagories").find({}).sort({ difficulty: 1, name: 1 }).toArray();
+    const characterMap = await getCharacterMap(results.flatMap(cat => cat.characters ?? []));
 
-
-    let characterIds = results.flatMap(category => category.characters);
-
-    let charactersArray = await db.collection("characters").find({ _id: { $in: characterIds.map(id => ObjectId.createFromHexString(id)) } }).toArray();
-    
-    let characterMap = charactersArray.reduce((map, character) => {
-        map[character._id.toString()] = character.name;
-        return map;
-    }, {});
-
-    results.forEach(category => {
-        category.characterNames = category.characters.map(characterId => characterMap[ObjectId.createFromHexString(characterId).toString()]);
+    results.forEach(cat => {
+        cat.characterNames = (cat.characters ?? []).map(id => characterMap.get(id)?.name ?? "(deleted)");
     });
 
-    
-    res.send(results).status(200);
+    res.status(200).json(results);
 });
 
 // Query one catagory
 catagory.get("/:id", verify, async (req, res) => {
-    let catagories = db.collection("catagories");
-    let query = { _id: ObjectId.createFromHexString(req.params.id) };
-    let result = await catagories.findOne(query);
+    let result = await db.collection("catagories").findOne({ _id: toObjectId(req.params.id) });
 
     if (!result) {
-        res.send("Catagory not found").status(404);
+        return res.status(404).json({ message: "Catagory not found" });
     }
 
-    let characters = db.collection("characters");
-    let charactersArray = await characters.find({ _id: { $in: result.characters.map(id => ObjectId.createFromHexString(id)) } }).toArray();
-    result.characterNames = charactersArray.map(character => character.name);
+    // Keep names in the same order as the ids, and drop ids whose character was deleted
+    const characterMap = await getCharacterMap(result.characters ?? []);
+    result.characters = (result.characters ?? []).filter(id => characterMap.has(id));
+    result.characterNames = result.characters.map(id => characterMap.get(id).name);
 
-    // for (let i = 0; i < result.characters.length; i++) {
-    //     let catagoryQuery = { _id: ObjectId.createFromHexString(result.characters[i]) };
-    //     let singleCharacter = await characters.findOne(catagoryQuery);
-    //     characterNameArray[i] = singleCharacter.name;
-    // }
-    // result.characterNames = characterNameArray;
-
-    res.send(result).status(200);
+    res.status(200).json(result);
 });
 
 // Add catagory
 catagory.post("/", verify, async (req, res) => {
-    try {
-        let newDocument = {
-            name: req.body.name,
-            characters: req.body.characters,
-            difficulty: Number(req.body.difficulty)
-        };
-
-        let catagories = db.collection("catagories");
-        let result = await catagories.insertOne(newDocument);
-        res.send(result).status(204);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error adding catagory");
-    }
+    let result = await db.collection("catagories").insertOne(validateCatagory(req.body));
+    res.status(201).json(result);
 });
 
 // Update catagory
 catagory.patch("/:id", verify, async (req, res) => {
-    try {
-        const query = { _id: ObjectId.createFromHexString(req.params.id) };
-        const updates = {
-            $set: {
-                name: req.body.name,
-                characters: req.body.characters,
-                difficulty: Number(req.body.difficulty)
-            }
-        };
+    const query = { _id: toObjectId(req.params.id) };
+    const updates = { $set: validateCatagory(req.body) };
 
-        let catagories = db.collection("catagories");
-        let result = await catagories.updateOne(query, updates);
-        res.send(result).status(200);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error updating catagory")
+    let result = await db.collection("catagories").updateOne(query, updates);
+    if (result.matchedCount === 0) {
+        return res.status(404).json({ message: "Catagory not found" });
     }
+    res.status(200).json(result);
 });
 
 // Delete catagory
 catagory.delete("/:id", verify, async (req, res) => {
-    try {
-        const query = { _id: ObjectId.createFromHexString(req.params.id) };
-
-        const catagories = db.collection("catagories");
-        let result = await catagories.deleteOne(query);
-        res.send(result).status(200);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error deleting catagory")
-    }
+    let result = await db.collection("catagories").deleteOne({ _id: toObjectId(req.params.id) });
+    res.status(200).json(result);
 });
 
 export default catagory;
