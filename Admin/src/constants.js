@@ -6,7 +6,5 @@ export const DIFFICULTIES = [
   { label: 'Extreme', bg: 'bg-extreme', ring: 'ring-extreme', dot: '🟪' },
 ];
 
-export const PARTS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-
 export const GROUP_SIZE = 4;
 export const MAX_MISTAKES = 4;

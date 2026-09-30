@@ -1,22 +1,18 @@
 import express from "express";
 import cors from "cors";
-import character from "./routes/character.js"
 import catagory from "./routes/catagory.js";
-import admin from "./routes/admin.js";
 
-if (!process.env.JWT_SECRET) {
-    console.error("JWT_SECRET is not set. Start the server with: npm start (reads server.env)");
+if (!process.env.ATLAS_URI) {
+    console.error("ATLAS_URI is not set. Start the server with: npm start (reads server.env)");
     process.exit(1);
 }
 
 const PORT = process.env.PORT || 5050;
 const app = express();
 
+// Public, read-only API for the game. Admin/write routes live in the JojoConnectionsAdmin project.
 app.use(cors());
-app.use(express.json());
-app.use("/character", character);
 app.use("/catagory", catagory);
-app.use("/admin", admin);
 
 // Express 5 forwards errors from async handlers here
 app.use((err, req, res, next) => {

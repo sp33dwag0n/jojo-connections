@@ -1,24 +1,12 @@
 import express from "express";
 import db from "../db/connection.js";
-import verify from "../verify.js";
-import { toObjectId, httpError, shuffle } from "../util.js";
+import { toObjectId, shuffle } from "../util.js";
 
 
 const catagory = express.Router();
 
 const GROUP_SIZE = 4;
 const DIFFICULTIES = [0, 1, 2, 3];
-
-function validateCatagory(body) {
-    const name = String(body?.name ?? "").trim();
-    const difficulty = Number(body?.difficulty);
-    const characters = Array.isArray(body?.characters) ? [...new Set(body.characters.map(String))] : [];
-    if (!name) throw httpError(400, "Name is required");
-    if (!DIFFICULTIES.includes(difficulty)) throw httpError(400, "Difficulty must be 0-3");
-    if (characters.length < GROUP_SIZE) throw httpError(400, `Pick at least ${GROUP_SIZE} characters`);
-    characters.forEach(toObjectId);
-    return { name, characters, difficulty };
-}
 
 // Map of character id string -> character document
 async function getCharacterMap(ids) {
@@ -95,58 +83,6 @@ catagory.get("/puzzle", async (req, res) => {
     res.status(503).json({
         message: "Couldn't build a puzzle without overlapping characters. Try adding more catagories or characters."
     });
-});
-
-// Get catagory list
-catagory.get("/", verify, async (req, res) => {
-    let results = await db.collection("catagories").find({}).sort({ difficulty: 1, name: 1 }).toArray();
-    const characterMap = await getCharacterMap(results.flatMap(cat => cat.characters ?? []));
-
-    results.forEach(cat => {
-        cat.characterNames = (cat.characters ?? []).map(id => characterMap.get(id)?.name ?? "(deleted)");
-    });
-
-    res.status(200).json(results);
-});
-
-// Query one catagory
-catagory.get("/:id", verify, async (req, res) => {
-    let result = await db.collection("catagories").findOne({ _id: toObjectId(req.params.id) });
-
-    if (!result) {
-        return res.status(404).json({ message: "Catagory not found" });
-    }
-
-    // Keep names in the same order as the ids, and drop ids whose character was deleted
-    const characterMap = await getCharacterMap(result.characters ?? []);
-    result.characters = (result.characters ?? []).filter(id => characterMap.has(id));
-    result.characterNames = result.characters.map(id => characterMap.get(id).name);
-
-    res.status(200).json(result);
-});
-
-// Add catagory
-catagory.post("/", verify, async (req, res) => {
-    let result = await db.collection("catagories").insertOne(validateCatagory(req.body));
-    res.status(201).json(result);
-});
-
-// Update catagory
-catagory.patch("/:id", verify, async (req, res) => {
-    const query = { _id: toObjectId(req.params.id) };
-    const updates = { $set: validateCatagory(req.body) };
-
-    let result = await db.collection("catagories").updateOne(query, updates);
-    if (result.matchedCount === 0) {
-        return res.status(404).json({ message: "Catagory not found" });
-    }
-    res.status(200).json(result);
-});
-
-// Delete catagory
-catagory.delete("/:id", verify, async (req, res) => {
-    let result = await db.collection("catagories").deleteOne({ _id: toObjectId(req.params.id) });
-    res.status(200).json(result);
 });
 
 export default catagory;

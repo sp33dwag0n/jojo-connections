@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Link } from 'react-router';
 import ConnectionButton from './ConnectionButton';
 import CorrectCategory from './CorrectCategory';
 import Notification from './Notification';
@@ -58,7 +57,7 @@ function Puzzle() {
     setError('');
 
     try {
-      const generatedPuzzle = await api('/catagory/puzzle', { auth: false });
+      const generatedPuzzle = await api('/catagory/puzzle');
       if (thisRequest !== requestId.current) return; // a newer request superseded this one
 
       const tiles = generatedPuzzle.flatMap((category) =>
@@ -187,12 +186,6 @@ function Puzzle() {
             <Button variant="ghost" size="sm" onClick={generatePuzzle} disabled={status === 'loading'}>
               New Puzzle
             </Button>
-            <Link
-              to="/admin"
-              className="rounded-lg px-3 py-1.5 text-sm font-semibold text-stone-600 transition hover:bg-stone-100 hover:text-stone-900"
-            >
-              Admin
-            </Link>
           </div>
         </div>
       </header>
@@ -230,10 +223,9 @@ function Puzzle() {
                   {characters.map((character) => {
                     const anim = tileAnimation(character._id);
                     return (
-                      <div key={character._id} className={anim.className} style={anim.style}>
+                      <div key={character._id} className={`min-w-0 ${anim.className ?? ''}`} style={anim.style}>
                         <ConnectionButton
                           name={character.name}
-                          part={character.part}
                           isPressed={pressedIds.includes(character._id)}
                           disabled={gameOver}
                           handleClick={() => connectionButtonPress(character._id)}
