@@ -1,4 +1,4 @@
-// Override with VITE_API_URL in Admin/.env.local if the server runs elsewhere
+// Override with VITE_API_URL in client/.env.local if the server runs elsewhere
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050';
 
 /**
