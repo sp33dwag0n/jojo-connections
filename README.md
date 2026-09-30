@@ -5,9 +5,6 @@ A JoJo's Bizarre Adventure take on NYT Connections: find four groups of four cha
 - `server/` — Express 5 + MongoDB API. Public and read-only: just `GET /catagory/puzzle`.
 - `client/` — React 19 + Vite + Tailwind CSS v4 frontend for the game.
 
-Managing characters and categories is done in the separate
-[JojoConnectionsAdmin](../JojoConnectionsAdmin) project, which uses the same database.
-
 ## Requirements
 
 Node.js 20.6 or newer (for `--env-file`).
