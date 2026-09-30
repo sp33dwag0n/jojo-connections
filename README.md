@@ -1,4 +1,4 @@
-# JoJo Connections
+# JOJO Connections
 
 A JoJo's Bizarre Adventure take on NYT Connections: find four groups of four characters.
 
