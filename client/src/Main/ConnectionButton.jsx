@@ -1,4 +1,4 @@
-function ConnectionButton({ name, isPressed, disabled, animation = '', handleClick }) {
+function ConnectionButton({ name, part, isPressed, disabled, animation = '', handleClick }) {
   return (
     <button
       onClick={handleClick}
@@ -11,6 +11,9 @@ function ConnectionButton({ name, isPressed, disabled, animation = '', handleCli
     >
       <span lang="en" className="w-full hyphens-auto break-words text-[11px] font-bold uppercase leading-tight sm:text-base">
         {name}
+      </span>
+      <span className={`mt-0.5 text-[10px] font-medium sm:text-xs ${isPressed ? 'text-stone-300' : 'text-stone-500'}`}>
+        Part {part}
       </span>
     </button>
   )

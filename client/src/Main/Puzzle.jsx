@@ -226,6 +226,7 @@ function Puzzle() {
                       <div key={character._id} className={`min-w-0 ${anim.className ?? ''}`} style={anim.style}>
                         <ConnectionButton
                           name={character.name}
+                          part={character.part}
                           isPressed={pressedIds.includes(character._id)}
                           disabled={gameOver}
                           handleClick={() => connectionButtonPress(character._id)}
