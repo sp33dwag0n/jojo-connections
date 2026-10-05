@@ -1,12 +1,12 @@
-const PUZZLE_URL = 'https://jojo-connections-api.vercel.app/category/puzzle';
+const API_URL = 'https://jojo-connections-api.vercel.app';
 
 /**
- * Fetches a new puzzle. Throws an Error with a readable message on failure.
+ * GETs a path from the puzzle API. Throws an Error with a readable message on failure.
  */
-export async function fetchPuzzle() {
+async function request(path) {
   let response;
   try {
-    response = await fetch(PUZZLE_URL);
+    response = await fetch(API_URL + path);
   } catch {
     throw new Error("Can't reach the puzzle server. Check your connection and try again.");
   }
@@ -21,3 +21,9 @@ export async function fetchPuzzle() {
   }
   return data;
 }
+
+// A new random puzzle every call (practice mode)
+export const fetchRandomPuzzle = () => request('/category/puzzle');
+
+// The shared puzzle for a "YYYY-MM-DD" date
+export const fetchDailyPuzzle = (date) => request(`/category/daily?date=${encodeURIComponent(date)}`);

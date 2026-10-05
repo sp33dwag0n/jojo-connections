@@ -5,8 +5,25 @@ import Notification from "./Notification";
 import WinModal from "./WinModal";
 import LoseModal from "./LoseModal";
 import Button from "../components/Button";
-import { fetchPuzzle } from "../api";
+import { fetchDailyPuzzle, fetchRandomPuzzle } from "../api";
 import { GROUP_SIZE, MAX_MISTAKES } from "../constants";
+
+// Today's date in the player's timezone as "YYYY-MM-DD" (toISOString would give the UTC date)
+function localDate() {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
+// "2026-10-05" -> "October 5, 2026"
+function formatDate(date) {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 function shuffle(arr) {
   // Durstenfeld shuffle
@@ -21,6 +38,8 @@ function shuffle(arr) {
 const BUMP_STAGGER = 70; // ms between each selected tile's bump
 
 function Puzzle() {
+  const [mode, setMode] = useState("daily"); // daily | practice
+  const [puzzleDate, setPuzzleDate] = useState(localDate()); // date of the daily puzzle being shown
   const [puzzleInfo, setPuzzleInfo] = useState(null); // categories, indexed by difficulty
   const [status, setStatus] = useState("loading"); // loading | error | playing | won | lost
   const [error, setError] = useState("");
@@ -50,15 +69,21 @@ function Puzzle() {
 
   const requestId = useRef(0);
 
-  const generatePuzzle = useCallback(async () => {
+  const generatePuzzle = useCallback(async (nextMode) => {
     const thisRequest = ++requestId.current;
+    const date = localDate();
     clearTimers();
+    setMode(nextMode);
+    setPuzzleDate(date);
     setStatus("loading");
     setModalOpen(false);
     setError("");
 
     try {
-      const generatedPuzzle = await fetchPuzzle();
+      const generatedPuzzle =
+        nextMode === "daily"
+          ? await fetchDailyPuzzle(date)
+          : await fetchRandomPuzzle();
       if (thisRequest !== requestId.current) return; // a newer request superseded this one
 
       const tiles = generatedPuzzle.flatMap((category) =>
@@ -87,7 +112,7 @@ function Puzzle() {
   useEffect(() => {
     // Fetching on mount is exactly what this effect is for
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    generatePuzzle();
+    generatePuzzle("daily");
     return clearTimers;
   }, [generatePuzzle, clearTimers]);
 
@@ -200,15 +225,28 @@ function Puzzle() {
           <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">
             JoJo <span className="text-extreme">Connections</span>
           </h1>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={generatePuzzle}
-              disabled={status === "loading"}
-            >
-              New Puzzle
-            </Button>
+          <div
+            className="flex rounded-full bg-stone-100 p-1"
+            role="group"
+            aria-label="Game mode"
+          >
+            {[
+              ["daily", "Daily"],
+              ["practice", "Practice"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                aria-pressed={mode === value}
+                onClick={() => mode !== value && generatePuzzle(value)}
+                className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
+                  mode === value
+                    ? "bg-white text-stone-900 shadow-sm"
+                    : "text-stone-500 hover:text-stone-900"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </header>
@@ -216,9 +254,16 @@ function Puzzle() {
       <Notification message={toast} />
 
       <main className="mx-auto flex max-w-2xl flex-col items-center px-3 py-6 sm:px-4 sm:py-10">
-        <p className="mb-5 text-center text-stone-600 sm:text-lg">
-          Create four groups of four!
-        </p>
+        <div className="mb-5 text-center">
+          <p className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+            {mode === "daily"
+              ? `Puzzle for ${formatDate(puzzleDate)}`
+              : "Practice puzzle"}
+          </p>
+          <p className="mt-1 text-stone-600 sm:text-lg">
+            Create four groups of four!
+          </p>
+        </div>
 
         {status === "loading" && (
           <div className="grid w-full grid-cols-4 gap-2" aria-busy="true">
@@ -235,7 +280,11 @@ function Puzzle() {
           <div className="flex w-full flex-col items-center gap-4 rounded-2xl border border-stone-200 bg-stone-50 px-6 py-10 text-center">
             <p className="font-semibold">Couldn't load a puzzle</p>
             <p className="max-w-sm text-sm text-stone-600">{error}</p>
-            <Button variant="primary" pill onClick={generatePuzzle}>
+            <Button
+              variant="primary"
+              pill
+              onClick={() => generatePuzzle(mode)}
+            >
               Try again
             </Button>
           </div>
@@ -311,9 +360,9 @@ function Puzzle() {
                     variant="primary"
                     pill
                     size="lg"
-                    onClick={generatePuzzle}
+                    onClick={() => generatePuzzle("practice")}
                   >
-                    New Puzzle
+                    {mode === "daily" ? "Play Practice" : "New Puzzle"}
                   </Button>
                 </>
               ) : (
@@ -353,14 +402,20 @@ function Puzzle() {
       <WinModal
         open={modalOpen && status === "won"}
         onClose={() => setModalOpen(false)}
-        onPlayAgain={generatePuzzle}
+        onPlayAgain={() => generatePuzzle("practice")}
+        playAgainLabel={
+          mode === "daily" ? "Play a Practice Puzzle" : "New Puzzle"
+        }
         guesses={guesses.map((g) => g.difficulties)}
         mistakes={mistakes}
       />
       <LoseModal
         open={modalOpen && status === "lost"}
         onClose={() => setModalOpen(false)}
-        onPlayAgain={generatePuzzle}
+        onPlayAgain={() => generatePuzzle("practice")}
+        playAgainLabel={
+          mode === "daily" ? "Play a Practice Puzzle" : "Try Another Puzzle"
+        }
         puzzleInfo={puzzleInfo}
         guesses={guesses.map((g) => g.difficulties)}
       />

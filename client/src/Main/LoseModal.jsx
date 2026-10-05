@@ -3,7 +3,7 @@ import Button from '../components/Button';
 import GuessHistory from './GuessHistory';
 import { DIFFICULTIES } from '../constants';
 
-function LoseModal({ open, onClose, onPlayAgain, puzzleInfo, guesses }) {
+function LoseModal({ open, onClose, onPlayAgain, playAgainLabel = 'Try Another Puzzle', puzzleInfo, guesses }) {
   if (!puzzleInfo) return null;
 
   return (
@@ -22,7 +22,7 @@ function LoseModal({ open, onClose, onPlayAgain, puzzleInfo, guesses }) {
           ))}
         </div>
         <GuessHistory guesses={guesses} />
-        <Button variant="primary" pill size="lg" onClick={onPlayAgain}>Try Another Puzzle</Button>
+        <Button variant="primary" pill size="lg" onClick={onPlayAgain}>{playAgainLabel}</Button>
         <button onClick={onClose} className="text-sm font-medium text-stone-500 underline-offset-2 hover:underline">
           Back to puzzle
         </button>

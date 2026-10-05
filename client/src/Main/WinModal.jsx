@@ -9,7 +9,7 @@ const guessesToText = (guesses) =>
 
 const PRAISE = ['Perfect!', 'Great!', 'Solid!', 'Phew!'];
 
-function WinModal({ open, onClose, onPlayAgain, guesses, mistakes }) {
+function WinModal({ open, onClose, onPlayAgain, playAgainLabel = 'New Puzzle', guesses, mistakes }) {
   const [copied, setCopied] = useState(false);
 
   const copyResult = async () => {
@@ -33,7 +33,7 @@ function WinModal({ open, onClose, onPlayAgain, guesses, mistakes }) {
         </div>
         <GuessHistory guesses={guesses} />
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
-          <Button variant="primary" pill size="lg" onClick={onPlayAgain}>New Puzzle</Button>
+          <Button variant="primary" pill size="lg" onClick={onPlayAgain}>{playAgainLabel}</Button>
           <Button variant="outline" pill size="lg" onClick={copyResult}>{copied ? 'Copied!' : 'Share Results'}</Button>
         </div>
         <button onClick={onClose} className="text-sm font-medium text-stone-500 underline-offset-2 hover:underline">
