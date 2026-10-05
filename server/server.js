@@ -10,8 +10,13 @@ if (!process.env.ATLAS_URI) {
 const PORT = process.env.PORT || 5050;
 const app = express();
 
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ?.split(",")
+    .map(origin => origin.trim().replace(/\/+$/, ""))
+    .filter(Boolean);
+
 // Public, read-only API for the game. Admin/write routes live in the JojoConnectionsAdmin project.
-app.use(cors());
+app.use(cors({ origin: allowedOrigins?.length ? allowedOrigins : true }));
 app.use("/catagory", catagory);
 
 // Express 5 forwards errors from async handlers here
@@ -22,6 +27,10 @@ app.use((err, req, res, next) => {
 });
 
 // Start the express server
-app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
-});
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`Server listening on port ${PORT}`);
+    });
+}
+
+export default app;
