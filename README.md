@@ -27,5 +27,5 @@ npm install
 npm run dev
 ```
 
-The frontend talks to `http://localhost:5050` by default. To point it elsewhere, create `client/.env.local` with
-`VITE_API_URL=https://your-server`.
+The frontend always fetches puzzles from the hosted API (`https://jojo-connections-api.vercel.app/category/puzzle`),
+so running the server locally is only needed when working on the server itself.

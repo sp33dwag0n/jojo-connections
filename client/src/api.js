@@ -1,15 +1,14 @@
-// Override with VITE_API_URL in client/.env.local if the server runs elsewhere
-export const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5050').replace(/\/+$/, '');
+const PUZZLE_URL = 'https://jojo-connections-api.vercel.app/category/puzzle';
 
 /**
- * Small fetch wrapper: parses JSON and throws an Error with the server's message on failure.
+ * Fetches a new puzzle. Throws an Error with a readable message on failure.
  */
-export async function api(path) {
+export async function fetchPuzzle() {
   let response;
   try {
-    response = await fetch(API_URL + path);
+    response = await fetch(PUZZLE_URL);
   } catch {
-    throw new Error("Can't reach the server. Is it running?");
+    throw new Error("Can't reach the puzzle server. Check your connection and try again.");
   }
 
   if (response.status === 429) {

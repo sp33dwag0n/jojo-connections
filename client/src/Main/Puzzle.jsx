@@ -5,7 +5,7 @@ import Notification from "./Notification";
 import WinModal from "./WinModal";
 import LoseModal from "./LoseModal";
 import Button from "../components/Button";
-import { api } from "../api";
+import { fetchPuzzle } from "../api";
 import { GROUP_SIZE, MAX_MISTAKES } from "../constants";
 
 function shuffle(arr) {
@@ -58,7 +58,7 @@ function Puzzle() {
     setError("");
 
     try {
-      const generatedPuzzle = await api("/category/puzzle");
+      const generatedPuzzle = await fetchPuzzle();
       if (thisRequest !== requestId.current) return; // a newer request superseded this one
 
       const tiles = generatedPuzzle.flatMap((category) =>
