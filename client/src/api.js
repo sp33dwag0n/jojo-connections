@@ -23,7 +23,7 @@ async function request(path) {
 }
 
 // A new random puzzle every call (practice mode)
-export const fetchRandomPuzzle = () => request('/category/puzzle');
+export const fetchRandomPuzzle = () => request('/puzzle');
 
 // The shared puzzle for a "YYYY-MM-DD" date
-export const fetchDailyPuzzle = (date) => request(`/category/daily?date=${encodeURIComponent(date)}`);
+export const fetchDailyPuzzle = (date) => request(`/puzzle/daily?date=${encodeURIComponent(date)}`);

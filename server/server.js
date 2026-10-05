@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import category from "./routes/category.js";
+import puzzle from "./routes/puzzle.js";
 
 if (!process.env.ATLAS_URI) {
   console.error(
@@ -18,7 +18,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",")
 
 // Public, read-only API for the game. Admin/write routes live in the JojoConnectionsAdmin project.
 app.use(cors({ origin: allowedOrigins?.length ? allowedOrigins : true }));
-app.use("/category", category);
+app.use("/puzzle", puzzle);
 
 // Express 5 forwards errors from async handlers here
 app.use((err, req, res, next) => {

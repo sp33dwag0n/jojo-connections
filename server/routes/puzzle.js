@@ -2,7 +2,7 @@ import express from "express";
 import db from "../db/connection.js";
 import { toObjectId, httpError, shuffle, seededRandom } from "../util.js";
 
-const category = express.Router();
+const puzzle = express.Router();
 
 const GROUP_SIZE = 4;
 const DIFFICULTIES = [0, 1, 2, 3];
@@ -145,13 +145,13 @@ function parseDate(date) {
 }
 
 // Random puzzle (practice mode)
-category.get("/puzzle", async (req, res) => {
+puzzle.get("/", async (req, res) => {
   res.status(200).json(buildPuzzle(await loadPools(), Math.random));
 });
 
 // Daily puzzle: the same for everyone on a given date. The client sends its local
 // date, which is always within a day of the current UTC date in any timezone.
-category.get("/daily", async (req, res) => {
+puzzle.get("/daily", async (req, res) => {
   const time = parseDate(req.query.date);
   if (time === null) {
     throw httpError(400, "Expected a date like 2026-10-05");
@@ -170,4 +170,4 @@ category.get("/daily", async (req, res) => {
   res.status(200).json(await getDailyPuzzle(req.query.date));
 });
 
-export default category;
+export default puzzle;
