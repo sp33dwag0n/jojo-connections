@@ -7,6 +7,31 @@ const category = express.Router();
 const GROUP_SIZE = 4;
 const DIFFICULTIES = [0, 1, 2, 3];
 const DAY_MS = 24 * 60 * 60 * 1000;
+const DAILY_CACHE_MS = 5 * 60 * 1000; // how long admin edits can take to show up in the daily puzzle
+
+// date -> { promise, expires }. Stores the promise so simultaneous requests share one build.
+const dailyCache = new Map();
+
+function getDailyPuzzle(date) {
+  const now = Date.now();
+  for (const [key, entry] of dailyCache) {
+    if (entry.expires <= now) dailyCache.delete(key);
+  }
+
+  let entry = dailyCache.get(date);
+  if (!entry) {
+    const promise = loadPools().then((pools) =>
+      buildPuzzle(pools, seededRandom(`jojo-daily:${date}`)),
+    );
+    entry = { promise, expires: now + DAILY_CACHE_MS };
+    dailyCache.set(date, entry);
+    // Don't keep failures around; the next request should retry
+    promise.catch(() => {
+      if (dailyCache.get(date) === entry) dailyCache.delete(date);
+    });
+  }
+  return entry.promise;
+}
 
 // Map of character id string -> character document
 async function getCharacterMap(ids) {
@@ -142,8 +167,7 @@ category.get("/daily", async (req, res) => {
     throw httpError(400, "Only today's puzzle is available");
   }
 
-  const random = seededRandom(`jojo-daily:${req.query.date}`);
-  res.status(200).json(buildPuzzle(await loadPools(), random));
+  res.status(200).json(await getDailyPuzzle(req.query.date));
 });
 
 export default category;
