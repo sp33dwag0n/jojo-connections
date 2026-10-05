@@ -2,7 +2,7 @@
 
 A JoJo's Bizarre Adventure take on NYT Connections: find four groups of four characters.
 
-- `server/` — Express 5 + MongoDB API. Public and read-only: just `GET /catagory/puzzle`.
+- `server/` — Express 5 + MongoDB API. Public and read-only: just `GET /category/puzzle`.
 - `client/` — React 19 + Vite + Tailwind CSS v4 frontend for the game.
 
 ## Requirements
