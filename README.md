@@ -1,6 +1,6 @@
 # JOJO Connections
 
-A JoJo's Bizarre Adventure take on NYT Connections: find four groups of four characters.
+A JoJo's Bizarre Adventure game based on NYT Connections: find four groups of four characters. Play at https://jojoconnections.vercel.app/
 
 - `server/` — Express 5 + MongoDB API. Public and read-only: `GET /puzzle` (random) and `GET /puzzle/daily?date=YYYY-MM-DD`.
 - `client/` — React 19 + Vite + Tailwind CSS v4 frontend for the game.
