@@ -6,6 +6,7 @@ import WinModal from "./WinModal";
 import LoseModal from "./LoseModal";
 import Button from "../components/Button";
 import { fetchDailyPuzzle, fetchRandomPuzzle } from "../api";
+import { preloadImages } from "../images";
 import { GROUP_SIZE, MAX_MISTAKES } from "../constants";
 
 // Today's date in the player's timezone as "YYYY-MM-DD" (toISOString would give the UTC date)
@@ -97,6 +98,9 @@ function Puzzle() {
       );
 
       setPuzzleInfo(generatedPuzzle);
+      // Warm the browser cache with this puzzle's character images (not awaited, so the board isn't blocked)
+      preloadImages(tiles.map((tile) => tile.img));
+
       setCharacters(shuffle(tiles));
       setPressedIds([]);
       setSolved([]);
