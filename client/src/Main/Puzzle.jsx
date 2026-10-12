@@ -230,7 +230,7 @@ function Puzzle() {
   return (
     <div className="min-h-svh bg-white">
       <header className="border-b border-stone-200">
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-3">
             <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">
               JoJo <span className="text-extreme">Connections</span>
@@ -266,8 +266,8 @@ function Puzzle() {
 
       <Notification message={toast} />
 
-      <main className="mx-auto flex max-w-2xl flex-col items-center px-3 py-6 sm:px-4 sm:py-10">
-        <p className="mb-5 text-center text-stone-600 sm:text-lg">
+      <main className="mx-auto flex max-w-3xl flex-col items-center px-2 py-4 sm:px-4 sm:py-6">
+        <p className="mb-4 text-center text-stone-600 sm:text-lg">
           Create four groups of four!
         </p>
 
@@ -276,7 +276,7 @@ function Puzzle() {
             {Array.from({ length: 16 }, (_, i) => (
               <div
                 key={i}
-                className="aspect-[4/3] animate-pulse rounded-lg bg-stone-100 sm:aspect-[5/3]"
+                className="aspect-[6/5] animate-pulse rounded-lg bg-stone-100 sm:aspect-[3/2]"
               />
             ))}
           </div>

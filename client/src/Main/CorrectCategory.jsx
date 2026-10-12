@@ -3,7 +3,7 @@ import { DIFFICULTIES } from '../constants';
 function CorrectCategory({ category }) {
   return (
     <div
-      className={`flex aspect-[16/3] flex-col items-center justify-center rounded-lg px-3 text-center animate-pop sm:aspect-[20/3]
+      className={`flex aspect-[24/5] flex-col items-center justify-center rounded-lg px-3 text-center animate-pop sm:aspect-[6/1]
         ${DIFFICULTIES[category.difficulty].bg}`}
     >
       <p className="text-sm font-bold uppercase sm:text-base">{category.name}</p>

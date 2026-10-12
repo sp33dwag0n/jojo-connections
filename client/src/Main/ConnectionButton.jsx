@@ -28,9 +28,9 @@ function ConnectionButton({ name, part, img, display = 'name', isPressed, disabl
       disabled={disabled}
       aria-pressed={isPressed}
       aria-label={showImage ? name : undefined}
-      className={`flex aspect-[4/3] w-full min-w-0 select-none flex-col overflow-hidden items-center justify-center rounded-lg text-center
-        transition-[background-color,color,transform] duration-150 active:scale-95 sm:aspect-[5/3]
-        ${showImage ? 'p-1.5 sm:p-2' : 'px-1'}
+      className={`flex aspect-[6/5] w-full min-w-0 select-none flex-col overflow-hidden items-center justify-center rounded-lg text-center
+        transition-[background-color,color,transform] duration-150 active:scale-95 sm:aspect-[3/2]
+        ${showImage ? 'p-0.5 sm:p-1' : 'px-1'}
         ${isPressed ? 'bg-stone-600 text-white' : 'bg-stone-200 text-stone-900 hover:bg-stone-300'}
         ${animation}`}
     >
@@ -39,10 +39,10 @@ function ConnectionButton({ name, part, img, display = 'name', isPressed, disabl
         <CardImage key={img} src={img} />
       ) : (
         <>
-          <span lang="en" className="w-full hyphens-auto break-words text-[11px] font-bold uppercase leading-tight sm:text-base">
+          <span lang="en" className="w-full hyphens-auto break-words text-xs font-bold uppercase leading-tight sm:text-lg">
             {name}
           </span>
-          <span className={`mt-0.5 text-[10px] font-medium sm:text-xs ${isPressed ? 'text-stone-300' : 'text-stone-500'}`}>
+          <span className={`mt-1 text-[11px] font-medium sm:mt-1.5 sm:text-sm ${isPressed ? 'text-stone-300' : 'text-stone-500'}`}>
             Part {part}
           </span>
         </>
