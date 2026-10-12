@@ -5,6 +5,7 @@ import Notification from "./Notification";
 import WinModal from "./WinModal";
 import LoseModal from "./LoseModal";
 import Button from "../components/Button";
+import SegmentedToggle from "../components/SegmentedToggle";
 import { fetchDailyPuzzle, fetchRandomPuzzle } from "../api";
 import { preloadImages } from "../images";
 import { GROUP_SIZE, MAX_MISTAKES } from "../constants";
@@ -43,6 +44,7 @@ const PRACTICE_ENABLED = false;
 
 function Puzzle() {
   const [mode, setMode] = useState("daily"); // daily | practice
+  const [cardDisplay, setCardDisplay] = useState("name"); // name | image (not wired up to the cards yet)
   const [puzzleDate, setPuzzleDate] = useState(localDate()); // date of the daily puzzle being shown
   const [puzzleInfo, setPuzzleInfo] = useState(null); // categories, indexed by difficulty
   const [status, setStatus] = useState("loading"); // loading | error | playing | won | lost
@@ -228,7 +230,7 @@ function Puzzle() {
   return (
     <div className="min-h-svh bg-white">
       <header className="border-b border-stone-200">
-        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-3">
             <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">
               JoJo <span className="text-extreme">Connections</span>
@@ -237,31 +239,28 @@ function Puzzle() {
               {mode === "daily" ? formatDate(puzzleDate) : "Practice"}
             </p>
           </div>
-          {PRACTICE_ENABLED && (
-            <div
-              className="flex rounded-full bg-stone-100 p-1"
-              role="group"
-              aria-label="Game mode"
-            >
-              {[
-                ["daily", "Daily"],
-                ["practice", "Practice"],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  aria-pressed={mode === value}
-                  onClick={() => mode !== value && generatePuzzle(value)}
-                  className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
-                    mode === value
-                      ? "bg-white text-stone-900 shadow-sm"
-                      : "text-stone-500 hover:text-stone-900"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="flex shrink-0 items-center gap-2">
+            {PRACTICE_ENABLED && (
+              <SegmentedToggle
+                label="Game mode"
+                options={[
+                  ["daily", "Daily"],
+                  ["practice", "Practice"],
+                ]}
+                value={mode}
+                onChange={generatePuzzle}
+              />
+            )}
+            <SegmentedToggle
+              label="Card display"
+              options={[
+                ["name", "Name"],
+                ["image", "Image"],
+              ]}
+              value={cardDisplay}
+              onChange={setCardDisplay}
+            />
+          </div>
         </div>
       </header>
 
