@@ -44,7 +44,7 @@ const PRACTICE_ENABLED = false;
 
 function Puzzle() {
   const [mode, setMode] = useState("daily"); // daily | practice
-  const [cardDisplay, setCardDisplay] = useState("name"); // name | image (not wired up to the cards yet)
+  const [cardDisplay, setCardDisplay] = useState("name"); // name | image: what each character card shows
   const [puzzleDate, setPuzzleDate] = useState(localDate()); // date of the daily puzzle being shown
   const [puzzleInfo, setPuzzleInfo] = useState(null); // categories, indexed by difficulty
   const [status, setStatus] = useState("loading"); // loading | error | playing | won | lost
@@ -319,6 +319,8 @@ function Puzzle() {
                         <ConnectionButton
                           name={character.name}
                           part={character.part}
+                          img={character.img}
+                          display={cardDisplay}
                           isPressed={pressedIds.includes(character._id)}
                           disabled={gameOver}
                           handleClick={() =>
