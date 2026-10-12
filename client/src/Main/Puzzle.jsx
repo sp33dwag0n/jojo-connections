@@ -37,6 +37,9 @@ function shuffle(arr) {
 
 const BUMP_STAGGER = 70; // ms between each selected tile's bump
 
+// Practice mode (unlimited random puzzles) is hidden from the page for now; flip to re-enable
+const PRACTICE_ENABLED = false;
+
 function Puzzle() {
   const [mode, setMode] = useState("daily"); // daily | practice
   const [puzzleDate, setPuzzleDate] = useState(localDate()); // date of the daily puzzle being shown
@@ -225,29 +228,31 @@ function Puzzle() {
           <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">
             JoJo <span className="text-extreme">Connections</span>
           </h1>
-          <div
-            className="flex rounded-full bg-stone-100 p-1"
-            role="group"
-            aria-label="Game mode"
-          >
-            {[
-              ["daily", "Daily"],
-              ["practice", "Practice"],
-            ].map(([value, label]) => (
-              <button
-                key={value}
-                aria-pressed={mode === value}
-                onClick={() => mode !== value && generatePuzzle(value)}
-                className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
-                  mode === value
-                    ? "bg-white text-stone-900 shadow-sm"
-                    : "text-stone-500 hover:text-stone-900"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {PRACTICE_ENABLED && (
+            <div
+              className="flex rounded-full bg-stone-100 p-1"
+              role="group"
+              aria-label="Game mode"
+            >
+              {[
+                ["daily", "Daily"],
+                ["practice", "Practice"],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  aria-pressed={mode === value}
+                  onClick={() => mode !== value && generatePuzzle(value)}
+                  className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
+                    mode === value
+                      ? "bg-white text-stone-900 shadow-sm"
+                      : "text-stone-500 hover:text-stone-900"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </header>
 
@@ -356,14 +361,16 @@ function Puzzle() {
                   >
                     View Results
                   </Button>
-                  <Button
-                    variant="primary"
-                    pill
-                    size="lg"
-                    onClick={() => generatePuzzle("practice")}
-                  >
-                    {mode === "daily" ? "Play Practice" : "New Puzzle"}
-                  </Button>
+                  {PRACTICE_ENABLED && (
+                    <Button
+                      variant="primary"
+                      pill
+                      size="lg"
+                      onClick={() => generatePuzzle("practice")}
+                    >
+                      {mode === "daily" ? "Play Practice" : "New Puzzle"}
+                    </Button>
+                  )}
                 </>
               ) : (
                 <>
@@ -402,7 +409,9 @@ function Puzzle() {
       <WinModal
         open={modalOpen && status === "won"}
         onClose={() => setModalOpen(false)}
-        onPlayAgain={() => generatePuzzle("practice")}
+        onPlayAgain={
+          PRACTICE_ENABLED ? () => generatePuzzle("practice") : undefined
+        }
         playAgainLabel={
           mode === "daily" ? "Play a Practice Puzzle" : "New Puzzle"
         }
@@ -412,7 +421,9 @@ function Puzzle() {
       <LoseModal
         open={modalOpen && status === "lost"}
         onClose={() => setModalOpen(false)}
-        onPlayAgain={() => generatePuzzle("practice")}
+        onPlayAgain={
+          PRACTICE_ENABLED ? () => generatePuzzle("practice") : undefined
+        }
         playAgainLabel={
           mode === "daily" ? "Play a Practice Puzzle" : "Try Another Puzzle"
         }

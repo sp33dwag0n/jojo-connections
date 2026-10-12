@@ -22,7 +22,7 @@ function LoseModal({ open, onClose, onPlayAgain, playAgainLabel = 'Try Another P
           ))}
         </div>
         <GuessHistory guesses={guesses} />
-        <Button variant="primary" pill size="lg" onClick={onPlayAgain}>{playAgainLabel}</Button>
+        {onPlayAgain && <Button variant="primary" pill size="lg" onClick={onPlayAgain}>{playAgainLabel}</Button>}
         <button onClick={onClose} className="text-sm font-medium text-stone-500 underline-offset-2 hover:underline">
           Back to puzzle
         </button>
