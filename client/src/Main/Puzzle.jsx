@@ -225,9 +225,14 @@ function Puzzle() {
     <div className="min-h-svh bg-white">
       <header className="border-b border-stone-200">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-          <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">
-            JoJo <span className="text-extreme">Connections</span>
-          </h1>
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-3">
+            <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">
+              JoJo <span className="text-extreme">Connections</span>
+            </h1>
+            <p className="border-l border-stone-300 pl-3 text-sm font-medium text-stone-500 sm:text-base">
+              {mode === "daily" ? formatDate(puzzleDate) : "Practice"}
+            </p>
+          </div>
           {PRACTICE_ENABLED && (
             <div
               className="flex rounded-full bg-stone-100 p-1"
@@ -259,16 +264,9 @@ function Puzzle() {
       <Notification message={toast} />
 
       <main className="mx-auto flex max-w-2xl flex-col items-center px-3 py-6 sm:px-4 sm:py-10">
-        <div className="mb-5 text-center">
-          <p className="text-sm font-semibold uppercase tracking-wide text-stone-500">
-            {mode === "daily"
-              ? `Puzzle for ${formatDate(puzzleDate)}`
-              : "Practice puzzle"}
-          </p>
-          <p className="mt-1 text-stone-600 sm:text-lg">
-            Create four groups of four!
-          </p>
-        </div>
+        <p className="mb-5 text-center text-stone-600 sm:text-lg">
+          Create four groups of four!
+        </p>
 
         {status === "loading" && (
           <div className="grid w-full grid-cols-4 gap-2" aria-busy="true">
