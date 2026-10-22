@@ -7,7 +7,7 @@ const puzzle = express.Router();
 const GROUP_SIZE = 4;
 const DIFFICULTIES = [0, 1, 2, 3];
 const DAY_MS = 24 * 60 * 60 * 1000;
-const DAILY_CACHE_MS = 5 * 60 * 1000; // how long admin edits can take to show up in the daily puzzle
+const DAILY_CACHE_MS = 15 * 60 * 1000; // how long admin edits can take to show up in the daily puzzle
 
 // "date" or "date:part" -> { promise, expires }. Stores the promise so simultaneous requests share one build.
 const dailyCache = new Map();
