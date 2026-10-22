@@ -9,25 +9,28 @@ const DIFFICULTIES = [0, 1, 2, 3];
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DAILY_CACHE_MS = 5 * 60 * 1000; // how long admin edits can take to show up in the daily puzzle
 
-// date -> { promise, expires }. Stores the promise so simultaneous requests share one build.
+// "date" or "date:part" -> { promise, expires }. Stores the promise so simultaneous requests share one build.
 const dailyCache = new Map();
 
-function getDailyPuzzle(date) {
+// `part` (optional) limits the puzzle to characters from that part or earlier
+function getDailyPuzzle(date, part) {
   const now = Date.now();
   for (const [key, entry] of dailyCache) {
     if (entry.expires <= now) dailyCache.delete(key);
   }
 
-  let entry = dailyCache.get(date);
+  // Without a part the key (and seed) is just the date, so the all-parts puzzle is unchanged
+  const key = part === undefined ? date : `${date}:${part}`;
+  let entry = dailyCache.get(key);
   if (!entry) {
-    const promise = loadPools().then((pools) =>
-      buildPuzzle(pools, seededRandom(`jojo-daily:${date}`)),
+    const promise = loadPools(part).then((pools) =>
+      buildPuzzle(pools, seededRandom(`jojo-daily:${key}`)),
     );
     entry = { promise, expires: now + DAILY_CACHE_MS };
-    dailyCache.set(date, entry);
+    dailyCache.set(key, entry);
     // Don't keep failures around; the next request should retry
     promise.catch(() => {
-      if (dailyCache.get(date) === entry) dailyCache.delete(date);
+      if (dailyCache.get(key) === entry) dailyCache.delete(key);
     });
   }
   return entry.promise;
@@ -151,26 +154,30 @@ function parseDate(date) {
   return time;
 }
 
+// Optional ?part=N query param -> N, or undefined if it wasn't given
+function parsePart(part) {
+  if (part === undefined) return undefined;
+  if (!/^\d+$/.test(part) || Number(part) < 1) {
+    throw httpError(400, "Part must be a positive whole number");
+  }
+  return Number(part);
+}
+
 // Random puzzle (practice mode). Optional ?part=N restricts the puzzle to characters from parts 1..N.
 puzzle.get("/", async (req, res) => {
-  let part;
-  if (req.query.part !== undefined) {
-    part = Number(req.query.part);
-    if (!/^\d+$/.test(req.query.part) || part < 1) {
-      throw httpError(400, "Part must be a positive whole number");
-    }
-  }
-
+  const part = parsePart(req.query.part);
   res.status(200).json(buildPuzzle(await loadPools(part), Math.random));
 });
 
 // Daily puzzle: the same for everyone on a given date. The client sends its local
 // date, which is always within a day of the current UTC date in any timezone.
+// Optional ?part=N gives a separate daily puzzle using only characters from parts 1..N.
 puzzle.get("/daily", async (req, res) => {
   const time = parseDate(req.query.date);
   if (time === null) {
     throw httpError(400, "Expected a date like 2026-10-05");
   }
+  const part = parsePart(req.query.part);
 
   const now = new Date();
   const todayUtc = Date.UTC(
@@ -182,7 +189,7 @@ puzzle.get("/daily", async (req, res) => {
     throw httpError(400, "Only today's puzzle is available");
   }
 
-  res.status(200).json(await getDailyPuzzle(req.query.date));
+  res.status(200).json(await getDailyPuzzle(req.query.date, part));
 });
 
 export default puzzle;
