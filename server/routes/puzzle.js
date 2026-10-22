@@ -45,7 +45,9 @@ async function getCharacterMap(ids) {
 
 // Load every usable category, grouped by difficulty. Sorted by _id so a seeded
 // random generator always sees the same input order (needed for the daily puzzle).
-async function loadPools() {
+// If `part` is given, only characters with part <= `part` are used, so categories
+// without enough of them are skipped.
+async function loadPools(part) {
   const all = await db
     .collection("catagories")
     .find({})
@@ -54,8 +56,13 @@ async function loadPools() {
   const characterMap = await getCharacterMap(
     all.flatMap((cat) => cat.characters ?? []),
   );
+  if (part !== undefined) {
+    for (const [id, doc] of characterMap) {
+      if (!(doc.part <= part)) characterMap.delete(id);
+    }
+  }
 
-  // Ignore references to characters that no longer exist
+  // Ignore references to characters that no longer exist (or are past the part limit)
   const byDifficulty = DIFFICULTIES.map(() => []);
   for (const cat of all) {
     const characters = (cat.characters ?? []).filter((id) =>
@@ -74,7 +81,7 @@ async function loadPools() {
     const names = ["Easy", "Medium", "Hard", "Extreme"];
     throw httpError(
       503,
-      `Not enough categories to build a puzzle. Add at least one ${missing.map((d) => names[d]).join(", ")} category with ${GROUP_SIZE}+ characters.`,
+      `Not enough categories to build a puzzle${part !== undefined ? ` up to part ${part}` : ""}. Add at least one ${missing.map((d) => names[d]).join(", ")} category with ${GROUP_SIZE}+ characters.`,
     );
   }
 
@@ -144,9 +151,17 @@ function parseDate(date) {
   return time;
 }
 
-// Random puzzle (practice mode)
+// Random puzzle (practice mode). Optional ?part=N restricts the puzzle to characters from parts 1..N.
 puzzle.get("/", async (req, res) => {
-  res.status(200).json(buildPuzzle(await loadPools(), Math.random));
+  let part;
+  if (req.query.part !== undefined) {
+    part = Number(req.query.part);
+    if (!/^\d+$/.test(req.query.part) || part < 1) {
+      throw httpError(400, "Part must be a positive whole number");
+    }
+  }
+
+  res.status(200).json(buildPuzzle(await loadPools(part), Math.random));
 });
 
 // Daily puzzle: the same for everyone on a given date. The client sends its local
