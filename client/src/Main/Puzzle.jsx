@@ -175,6 +175,8 @@ function Puzzle() {
       setAnimation(null);
       setBusy(false);
       setStatus(progress.status);
+      // A restored finished game opens straight to the results
+      setModalOpen(progress.status === "won" || progress.status === "lost");
     } catch (err) {
       if (thisRequest !== requestId.current) return;
       setError(err.message);
