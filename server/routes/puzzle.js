@@ -52,7 +52,7 @@ async function getCharacterMap(ids) {
 // without enough of them are skipped.
 async function loadPools(part) {
   const all = await db
-    .collection("catagories")
+    .collection("categories")
     .find({})
     .sort({ _id: 1 })
     .toArray();
