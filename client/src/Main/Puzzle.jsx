@@ -8,6 +8,7 @@ import Button from "../components/Button";
 import SegmentedToggle from "../components/SegmentedToggle";
 import { fetchDailyPuzzle, fetchRandomPuzzle } from "../api";
 import { preloadImages } from "../images";
+import { puzzleKey, loadDailyProgress, saveDailyProgress } from "../storage";
 import { GROUP_SIZE, MAX_MISTAKES } from "../constants";
 
 // Today's date in the player's timezone as "YYYY-MM-DD" (toISOString would give the UTC date)
@@ -35,6 +36,57 @@ function shuffle(arr) {
     [ans[i], ans[j]] = [ans[j], ans[i]];
   }
   return ans;
+}
+
+// { key, ids, difficulties, best } for a guess of character ids, where best is the most tiles it has from one group
+function scoreGuess(ids, byId) {
+  const difficulties = ids.map((id) => byId.get(id).difficulty);
+  const counts = [0, 0, 0, 0];
+  difficulties.forEach((d) => counts[d]++);
+  return {
+    key: [...ids].sort().join(","),
+    ids,
+    difficulties,
+    best: Math.max(...counts),
+  };
+}
+
+// Play saved guesses back (no animations) to rebuild the board. Returns null if they don't fit this puzzle.
+function replayGuesses(tiles, savedGuesses) {
+  const byId = new Map(tiles.map((t) => [t._id, t]));
+  const solved = [];
+  const guesses = [];
+  let mistakes = 0;
+  for (const ids of savedGuesses) {
+    if (solved.length === 4 || mistakes >= MAX_MISTAKES) break;
+    if (
+      !Array.isArray(ids) ||
+      ids.length !== GROUP_SIZE ||
+      new Set(ids).size !== GROUP_SIZE ||
+      !ids.every((id) => byId.has(id))
+    ) {
+      return null;
+    }
+    const guess = scoreGuess(ids, byId);
+    guesses.push(guess);
+    if (guess.best === GROUP_SIZE) solved.push(guess.difficulties[0]);
+    else mistakes++;
+  }
+
+  let status = "playing";
+  if (solved.length === 4) {
+    status = "won";
+  } else if (mistakes >= MAX_MISTAKES) {
+    status = "lost";
+    solved.push(...[0, 1, 2, 3].filter((d) => !solved.includes(d)));
+  }
+  return {
+    solved,
+    mistakes,
+    guesses,
+    status,
+    characters: tiles.filter((t) => !solved.includes(t.difficulty)),
+  };
 }
 
 const BUMP_STAGGER = 70; // ms between each selected tile's bump
@@ -74,6 +126,7 @@ function Puzzle() {
   }, []);
 
   const requestId = useRef(0);
+  const dailySave = useRef(null); // { date, key } of the daily puzzle being played, or null in practice mode
 
   const generatePuzzle = useCallback(async (nextMode) => {
     const thisRequest = ++requestId.current;
@@ -103,14 +156,25 @@ function Puzzle() {
       // Warm the browser cache with this puzzle's character images (not awaited, so the board isn't blocked)
       preloadImages(tiles.map((tile) => tile.img));
 
-      setCharacters(shuffle(tiles));
+      // Resume today's saved progress, if any (a save for another day or puzzle is discarded)
+      const save =
+        nextMode === "daily"
+          ? { date, key: puzzleKey(generatedPuzzle) }
+          : null;
+      dailySave.current = save;
+      const progress =
+        (save &&
+          replayGuesses(tiles, loadDailyProgress(save.date, save.key))) ??
+        replayGuesses(tiles, []);
+
+      setCharacters(shuffle(progress.characters));
       setPressedIds([]);
-      setSolved([]);
-      setMistakes(0);
-      setGuesses([]);
+      setSolved(progress.solved);
+      setMistakes(progress.mistakes);
+      setGuesses(progress.guesses);
       setAnimation(null);
       setBusy(false);
-      setStatus("playing");
+      setStatus(progress.status);
     } catch (err) {
       if (thisRequest !== requestId.current) return;
       setError(err.message);
@@ -163,19 +227,23 @@ function Puzzle() {
     if (pressedIds.length !== GROUP_SIZE || busy || status !== "playing")
       return;
 
-    const key = [...pressedIds].sort().join(",");
-    if (guesses.some((g) => g.key === key)) {
+    const guess = scoreGuess(
+      pressedIds,
+      new Map(characters.map((c) => [c._id, c])),
+    );
+    if (guesses.some((g) => g.key === guess.key)) {
       showToast("Already guessed!");
       return;
     }
+    const { difficulties, best } = guess;
 
-    const byId = new Map(characters.map((c) => [c._id, c]));
-    const difficulties = pressedIds.map((id) => byId.get(id).difficulty);
-    const counts = [0, 0, 0, 0];
-    difficulties.forEach((d) => counts[d]++);
-    const best = Math.max(...counts);
-
-    setGuesses((prev) => [...prev, { key, difficulties }]);
+    const newGuesses = [...guesses, guess];
+    setGuesses(newGuesses);
+    // Save right away so a reload mid-animation still keeps this guess
+    if (dailySave.current) {
+      const { date, key } = dailySave.current;
+      saveDailyProgress(date, key, newGuesses.map((g) => g.ids));
+    }
     setBusy(true);
     setAnimation("bump");
 
